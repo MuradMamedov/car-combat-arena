@@ -50,6 +50,8 @@ export interface GameClientConfig {
     cancelMatchmakingBtn?: string;
     // Player name input
     playerNameInput?: string;
+    // Leave game button (during gameplay)
+    leaveGameBtn?: string;
   };
   hudElements: {
     health1: string;
@@ -103,6 +105,8 @@ const DEFAULT_CONFIG: GameClientConfig = {
     cancelMatchmakingBtn: "cancel-matchmaking-btn",
     // Player name input
     playerNameInput: "player-name-input",
+    // Leave game button
+    leaveGameBtn: "leave-game-btn",
   },
   hudElements: {
     health1: "health1",
@@ -211,6 +215,7 @@ export class GameClient {
     this.setupMultiplayerButtons();
     this.setupMatchmakingButtons();
     this.setupPlayerNameInput();
+    this.setupLeaveGameButton();
     
     // Load saved customization from localStorage
     this.loadCustomization();
@@ -439,6 +444,46 @@ export class GameClient {
         }
       });
     }
+  }
+
+  /**
+   * Set up leave game button handler (for leaving during gameplay)
+   */
+  private setupLeaveGameButton(): void {
+    const leaveGameBtn = document.getElementById(this.config.elements.leaveGameBtn || "");
+    
+    if (leaveGameBtn) {
+      leaveGameBtn.addEventListener("click", () => {
+        this.leaveGame();
+      });
+    }
+  }
+
+  /**
+   * Leave the current game and return to lobby
+   */
+  private leaveGame(): void {
+    // Stop the game loop
+    this.stopGameLoop();
+    
+    // Stop any ongoing sounds
+    this.soundManager.stopBoost();
+    
+    // Disable input controls
+    this.inputManager.disable();
+    
+    // Leave the room on the server
+    this.networkManager.leaveRoom();
+    
+    // Reset room state
+    this.resetRoomState();
+    
+    // Hide game over overlay if visible
+    this.screenManager.hideGameOver();
+    
+    // Return to lobby
+    this.screenManager.showLobby();
+    this.hudController.setStatus("Left game. Choose a game mode.", true);
   }
 
   /**
