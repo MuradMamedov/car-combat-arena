@@ -6,10 +6,18 @@ import { GameClient } from "./GameClient.js";
  * This allows the game to work on LAN when shared
  */
 function getServerUrl(): string {
+  // Production: use environment variable set at build time
+  // Development: use localhost
+  const wsHost = import.meta.env.VITE_WS_SERVER_URL;
+
+  if (wsHost) {
+    return wsHost; // e.g., "wss://your-app.azurecontainerapps.io"
+  }
+
+  // Fallback for local dev
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const host = window.location.hostname || "localhost";
-  const port = 8080;
-  return `${protocol}//${host}:${port}`;
+  return `${protocol}//${host}:8080`;
 }
 
 /**

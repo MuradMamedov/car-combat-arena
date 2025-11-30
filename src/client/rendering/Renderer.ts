@@ -221,6 +221,19 @@ export class Renderer {
         // Check for health damage
         if (player.health < previous.health) {
           this.soundManager.play("hit");
+
+          // Check if glider was destroyed (health dropped to 0)
+          if (player.health <= 0 && previous.health > 0) {
+            // Glider destroyed - trigger explosion!
+            this.particleSystem.addGliderExplosionParticles(
+              player.x,
+              player.y,
+              player.color,
+              player.glowColor || player.color,
+              player.tier || 1
+            );
+            this.soundManager.play("explosion");
+          }
         }
 
         // Check for boost state changes

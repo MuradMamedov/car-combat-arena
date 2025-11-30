@@ -1095,6 +1095,189 @@ export class ParticleSystem {
   }
 
   /**
+   * Add glider explosion particles when a glider is destroyed
+   * Creates a dramatic explosion with debris, fire, smoke and sparks
+   */
+  addGliderExplosionParticles(
+    x: number,
+    y: number,
+    gliderColor: string,
+    glowColor: string,
+    tier: number
+  ): void {
+    // Scale explosion intensity based on tier
+    const intensityMultiplier = 1 + (tier - 1) * 0.15;
+
+    // Main explosion burst - fiery core
+    const coreParticles = Math.floor(30 * intensityMultiplier);
+    const fireColors = [
+      "#ffffff",
+      this.themeColors.boostFlameCore,
+      this.themeColors.boostFlameOuter,
+      this.themeColors.highlight,
+      "#ff4500",
+      "#ff6b00",
+      "#ffaa00",
+    ];
+
+    for (let i = 0; i < coreParticles; i++) {
+      const angle =
+        (i / coreParticles) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+      const speed = 4 + Math.random() * 8;
+
+      this.addParticle(
+        {
+          x: x + (Math.random() - 0.5) * 20,
+          y: y + (Math.random() - 0.5) * 20,
+        },
+        {
+          x: Math.cos(angle) * speed,
+          y: Math.sin(angle) * speed,
+        },
+        25 + Math.random() * 20,
+        fireColors[Math.floor(Math.random() * fireColors.length)],
+        4 + Math.random() * 6
+      );
+    }
+
+    // Secondary explosion ring
+    const ringParticles = Math.floor(20 * intensityMultiplier);
+    for (let i = 0; i < ringParticles; i++) {
+      const angle = (i / ringParticles) * Math.PI * 2;
+      const speed = 6 + Math.random() * 4;
+
+      this.addParticle(
+        { x, y },
+        {
+          x: Math.cos(angle) * speed,
+          y: Math.sin(angle) * speed,
+        },
+        20 + Math.random() * 15,
+        Math.random() > 0.5 ? glowColor : this.themeColors.highlight,
+        3 + Math.random() * 4
+      );
+    }
+
+    // Glider debris - colored fragments flying outward
+    const debrisCount = Math.floor(25 * intensityMultiplier);
+    const debrisColors = [
+      gliderColor,
+      ThemeManager.darken(gliderColor, 0.7),
+      ThemeManager.lighten(gliderColor, 1.2),
+      "#333333",
+      "#555555",
+    ];
+
+    for (let i = 0; i < debrisCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 2 + Math.random() * 7;
+
+      this.addParticle(
+        {
+          x: x + (Math.random() - 0.5) * 40,
+          y: y + (Math.random() - 0.5) * 40,
+        },
+        {
+          x: Math.cos(angle) * speed,
+          y: Math.sin(angle) * speed - 0.5, // Slight upward bias
+        },
+        35 + Math.random() * 25,
+        debrisColors[Math.floor(Math.random() * debrisColors.length)],
+        2 + Math.random() * 4
+      );
+    }
+
+    // Smoke cloud - dark particles that rise
+    const smokeCount = Math.floor(20 * intensityMultiplier);
+    const smokeColors = [
+      "#222222",
+      "#333333",
+      "#444444",
+      "#555555",
+      ThemeManager.withAlpha(this.themeColors.darkSurface, 0.9),
+    ];
+
+    for (let i = 0; i < smokeCount; i++) {
+      this.addParticle(
+        {
+          x: x + (Math.random() - 0.5) * 50,
+          y: y + (Math.random() - 0.5) * 50,
+        },
+        {
+          x: (Math.random() - 0.5) * 2,
+          y: -1 - Math.random() * 2, // Rise upward
+        },
+        40 + Math.random() * 30,
+        smokeColors[Math.floor(Math.random() * smokeColors.length)],
+        8 + Math.random() * 12
+      );
+    }
+
+    // Electric sparks for high-tier gliders
+    if (tier >= 5) {
+      const sparkCount = Math.floor(15 * (tier / 10));
+      for (let i = 0; i < sparkCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 5 + Math.random() * 8;
+
+        this.addParticle(
+          {
+            x: x + (Math.random() - 0.5) * 30,
+            y: y + (Math.random() - 0.5) * 30,
+          },
+          {
+            x: Math.cos(angle) * speed,
+            y: Math.sin(angle) * speed,
+          },
+          10 + Math.random() * 8,
+          Math.random() > 0.3 ? glowColor : "#ffffff",
+          1 + Math.random() * 2
+        );
+      }
+    }
+
+    // Plasma burst for top-tier gliders (8+)
+    if (tier >= 8) {
+      const plasmaCount = 12;
+      for (let i = 0; i < plasmaCount; i++) {
+        const angle = (i / plasmaCount) * Math.PI * 2;
+        const dist = 15 + Math.random() * 25;
+
+        this.addParticle(
+          {
+            x: x + Math.cos(angle) * dist,
+            y: y + Math.sin(angle) * dist,
+          },
+          {
+            x: Math.cos(angle) * 2,
+            y: Math.sin(angle) * 2,
+          },
+          30 + Math.random() * 20,
+          ThemeManager.lighten(glowColor, 1.3),
+          5 + Math.random() * 4
+        );
+      }
+    }
+
+    // Central white flash
+    for (let i = 0; i < 8; i++) {
+      this.addParticle(
+        {
+          x: x + (Math.random() - 0.5) * 10,
+          y: y + (Math.random() - 0.5) * 10,
+        },
+        {
+          x: (Math.random() - 0.5) * 3,
+          y: (Math.random() - 0.5) * 3,
+        },
+        12 + Math.random() * 8,
+        "#ffffff",
+        6 + Math.random() * 4
+      );
+    }
+  }
+
+  /**
    * Set alpha on a hex color
    */
   private setAlpha(color: string, alpha: number): string {
