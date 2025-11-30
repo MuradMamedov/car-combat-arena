@@ -1,8 +1,8 @@
 /**
  * Game dimension constants
  */
-export const GAME_WIDTH = 1200;
-export const GAME_HEIGHT = 800;
+export const GAME_WIDTH = 1920;
+export const GAME_HEIGHT = 1080;
 
 /**
  * Car physics constants
@@ -115,7 +115,7 @@ export const COLLISION_DAMAGE_MULTIPLIER = 2;
 export const WALL_THICKNESS = 20; // Fixed width/height for all walls
 export const WALL_MIN_LENGTH = 80;
 export const WALL_MAX_LENGTH = 180;
-export const WALL_COUNT = 8;
+export const WALL_COUNT = 16;
 export const WALL_SPAWN_MARGIN = 200; // Distance from spawn points to keep clear
 
 /**
