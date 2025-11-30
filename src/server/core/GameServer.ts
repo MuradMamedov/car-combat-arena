@@ -1,10 +1,12 @@
 import { WebSocket, WebSocketServer } from "ws";
 import {
   SERVER_PORT,
+  type GliderTier,
 } from "../../shared/constants/index.js";
 import type {
   ClientMessage,
   ServerMessage,
+  PlayerCustomization,
 } from "../../shared/types/index.js";
 import { RoomManager } from "../managers/index.js";
 
@@ -89,12 +91,12 @@ export class GameServer {
       
       // Handle room creation/joining separately
       if (message.type === "createRoom") {
-        this.handleCreateRoom(ws);
+        this.handleCreateRoom(ws, message.customization, message.tier);
         return;
       }
       
       if (message.type === "joinRoom") {
-        this.handleJoinRoom(ws, message.roomCode);
+        this.handleJoinRoom(ws, message.roomCode, message.customization, message.tier);
         return;
       }
       
@@ -115,7 +117,7 @@ export class GameServer {
 
       // Handle matchmaking
       if (message.type === "findMatch") {
-        this.handleFindMatch(ws);
+        this.handleFindMatch(ws, message.customization, message.tier);
         return;
       }
 
@@ -143,7 +145,11 @@ export class GameServer {
   /**
    * Handle room creation request
    */
-  private handleCreateRoom(ws: WebSocket): void {
+  private handleCreateRoom(
+    ws: WebSocket,
+    customization?: PlayerCustomization,
+    tier?: GliderTier
+  ): void {
     // Check if already in a room
     const existingPlayerId = this.wsToPlayerId.get(ws);
     if (existingPlayerId && this.roomManager.getPlayerRoom(existingPlayerId)) {
@@ -154,8 +160,8 @@ export class GameServer {
       return;
     }
 
-    // Create the room
-    const result = this.roomManager.createRoom(ws);
+    // Create the room with customization and tier
+    const result = this.roomManager.createRoom(ws, customization, tier);
     
     if (!result) {
       this.sendToSocket(ws, {
@@ -191,7 +197,12 @@ export class GameServer {
   /**
    * Handle room join request
    */
-  private handleJoinRoom(ws: WebSocket, roomCode: string): void {
+  private handleJoinRoom(
+    ws: WebSocket,
+    roomCode: string,
+    customization?: PlayerCustomization,
+    tier?: GliderTier
+  ): void {
     // Check if already in a room
     const existingPlayerId = this.wsToPlayerId.get(ws);
     if (existingPlayerId && this.roomManager.getPlayerRoom(existingPlayerId)) {
@@ -211,8 +222,8 @@ export class GameServer {
       return;
     }
 
-    // Try to join the room
-    const result = this.roomManager.joinRoom(ws, roomCode);
+    // Try to join the room with customization and tier
+    const result = this.roomManager.joinRoom(ws, roomCode, customization, tier);
     
     if (!result) {
       this.sendToSocket(ws, {
@@ -251,7 +262,11 @@ export class GameServer {
   /**
    * Handle find match request (random matchmaking)
    */
-  private handleFindMatch(ws: WebSocket): void {
+  private handleFindMatch(
+    ws: WebSocket,
+    customization?: PlayerCustomization,
+    tier?: GliderTier
+  ): void {
     // Check if already in a room
     const existingPlayerId = this.wsToPlayerId.get(ws);
     if (existingPlayerId && this.roomManager.getPlayerRoom(existingPlayerId)) {
@@ -271,8 +286,8 @@ export class GameServer {
       return;
     }
 
-    // Join matchmaking queue
-    const result = this.roomManager.joinMatchmaking(ws);
+    // Join matchmaking queue with customization and tier
+    const result = this.roomManager.joinMatchmaking(ws, customization, tier);
 
     // If matched, register both players
     if (result.matched && result.playerId && result.roomCode) {

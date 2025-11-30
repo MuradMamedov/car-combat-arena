@@ -281,7 +281,7 @@ export class GameClient {
       botBtn.addEventListener("click", () => {
         // First create a room for bot play
         if (!this.isInRoom) {
-          this.networkManager.createRoom();
+          this.networkManager.createRoom(this.customization, this.selectedTier);
           // Store that we want to add bot after room creation
           botBtn.dataset.pendingBot = "true";
           botBtn.dataset.difficulty = difficultySelect?.value || "medium";
@@ -357,7 +357,7 @@ export class GameClient {
     if (hostBtn) {
       hostBtn.addEventListener("click", () => {
         if (!this.validatePlayerName()) return;
-        this.networkManager.createRoom();
+        this.networkManager.createRoom(this.customization, this.selectedTier);
         this.hudController.setStatus("Creating room...", true);
       });
     }
@@ -368,7 +368,11 @@ export class GameClient {
         if (!this.validatePlayerName()) return;
         const roomCode = roomCodeInput.value.trim();
         if (roomCode) {
-          this.networkManager.joinRoom(roomCode);
+          this.networkManager.joinRoom(
+            roomCode,
+            this.customization,
+            this.selectedTier
+          );
           this.hudController.setStatus("Joining room...", true);
         } else {
           this.hudController.setStatus("Please enter a room code", false);
@@ -381,7 +385,11 @@ export class GameClient {
           if (!this.validatePlayerName()) return;
           const roomCode = roomCodeInput.value.trim();
           if (roomCode) {
-            this.networkManager.joinRoom(roomCode);
+            this.networkManager.joinRoom(
+              roomCode,
+              this.customization,
+              this.selectedTier
+            );
             this.hudController.setStatus("Joining room...", true);
           }
         }
@@ -428,7 +436,7 @@ export class GameClient {
       randomBtn.addEventListener("click", () => {
         if (!this.isMatchmaking && !this.isInRoom) {
           if (!this.validatePlayerName()) return;
-          this.networkManager.findMatch();
+          this.networkManager.findMatch(this.customization, this.selectedTier);
           this.hudController.setStatus("Searching for opponent...", true);
         }
       });

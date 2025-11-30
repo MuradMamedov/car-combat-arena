@@ -146,11 +146,15 @@ export interface ClientCustomizationMessage {
 
 export interface ClientCreateRoomMessage {
   readonly type: "createRoom";
+  readonly customization?: PlayerCustomization;
+  readonly tier?: GliderTier;
 }
 
 export interface ClientJoinRoomMessage {
   readonly type: "joinRoom";
   readonly roomCode: string;
+  readonly customization?: PlayerCustomization;
+  readonly tier?: GliderTier;
 }
 
 export interface ClientLeaveRoomMessage {
@@ -159,6 +163,8 @@ export interface ClientLeaveRoomMessage {
 
 export interface ClientFindMatchMessage {
   readonly type: "findMatch";
+  readonly customization?: PlayerCustomization;
+  readonly tier?: GliderTier;
 }
 
 export interface ClientCancelMatchmakingMessage {

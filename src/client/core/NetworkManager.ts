@@ -1,4 +1,4 @@
-import type { ClientMessage, ServerMessage } from "../../shared/index.js";
+import type { ClientMessage, ServerMessage, PlayerCustomization, GliderTier } from "../../shared/index.js";
 
 /**
  * Network event handlers
@@ -178,15 +178,15 @@ export class NetworkManager {
   /**
    * Create a new game room
    */
-  createRoom(): void {
-    this.send({ type: "createRoom" });
+  createRoom(customization?: PlayerCustomization, tier?: GliderTier): void {
+    this.send({ type: "createRoom", customization, tier });
   }
 
   /**
    * Join an existing game room
    */
-  joinRoom(roomCode: string): void {
-    this.send({ type: "joinRoom", roomCode });
+  joinRoom(roomCode: string, customization?: PlayerCustomization, tier?: GliderTier): void {
+    this.send({ type: "joinRoom", roomCode, customization, tier });
   }
 
   /**
@@ -199,8 +199,8 @@ export class NetworkManager {
   /**
    * Find a random match
    */
-  findMatch(): void {
-    this.send({ type: "findMatch" });
+  findMatch(customization?: PlayerCustomization, tier?: GliderTier): void {
+    this.send({ type: "findMatch", customization, tier });
   }
 
   /**

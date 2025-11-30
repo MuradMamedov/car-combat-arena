@@ -7,6 +7,7 @@ import type {
   BotDifficultyLevel,
   ClientMessage,
   GameState,
+  PlayerCustomization,
 } from "../../shared/types/index.js";
 import { BotManager } from "./BotManager.js";
 import { GameStateManager } from "./GameStateManager.js";
@@ -54,6 +55,8 @@ export interface RoomEvents {
 interface QueuedPlayer {
   ws: WebSocket;
   joinedAt: number;
+  customization?: PlayerCustomization;
+  tier?: GliderTier;
 }
 
 /**
@@ -81,7 +84,11 @@ export class RoomManager {
   /**
    * Create a new game room
    */
-  createRoom(hostWs: WebSocket): { roomCode: string; playerId: string } | null {
+  createRoom(
+    hostWs: WebSocket,
+    customization?: PlayerCustomization,
+    tier?: GliderTier
+  ): { roomCode: string; playerId: string } | null {
     // Generate unique room code
     let roomCode = generateRoomCode();
     while (this.rooms.has(roomCode)) {
@@ -105,8 +112,8 @@ export class RoomManager {
       }
     );
 
-    // Add host player
-    const hostData = playerManager.addPlayer();
+    // Add host player with customization and tier
+    const hostData = playerManager.addPlayer(tier ?? 3, customization);
     if (!hostData) {
       return null;
     }
@@ -137,7 +144,12 @@ export class RoomManager {
   /**
    * Join an existing room
    */
-  joinRoom(ws: WebSocket, roomCode: string): { playerId: string; playerCount: number } | null {
+  joinRoom(
+    ws: WebSocket,
+    roomCode: string,
+    customization?: PlayerCustomization,
+    tier?: GliderTier
+  ): { playerId: string; playerCount: number } | null {
     const normalizedCode = roomCode.toUpperCase().trim();
     const room = this.rooms.get(normalizedCode);
 
@@ -150,8 +162,8 @@ export class RoomManager {
       return null;
     }
 
-    // Add player
-    const playerData = room.playerManager.addPlayer();
+    // Add player with customization and tier
+    const playerData = room.playerManager.addPlayer(tier ?? 3, customization);
     if (!playerData) {
       return null;
     }
@@ -481,7 +493,11 @@ export class RoomManager {
    * Add a player to the matchmaking queue
    * Returns true if immediately matched with another player
    */
-  joinMatchmaking(ws: WebSocket): { 
+  joinMatchmaking(
+    ws: WebSocket,
+    customization?: PlayerCustomization,
+    tier?: GliderTier
+  ): { 
     matched: boolean; 
     roomCode?: string; 
     playerId?: string;
@@ -493,10 +509,12 @@ export class RoomManager {
       return { matched: false };
     }
 
-    // Add to queue
+    // Add to queue with customization and tier
     this.matchmakingQueue.set(ws, {
       ws,
       joinedAt: Date.now(),
+      customization,
+      tier,
     });
 
     console.log(`Player added to matchmaking queue. Queue size: ${this.matchmakingQueue.size}`);
@@ -550,6 +568,12 @@ export class RoomManager {
       return { matched: false };
     }
 
+    // Get the new player's data from the queue
+    const newPlayerData = this.matchmakingQueue.get(newPlayerWs);
+    if (!newPlayerData) {
+      return { matched: false };
+    }
+
     // Find another player in the queue (not the one who just joined)
     let otherPlayer: QueuedPlayer | null = null;
     let otherWs: WebSocket | null = null;
@@ -572,12 +596,12 @@ export class RoomManager {
 
     console.log(`Match found! Creating room for matched players.`);
 
-    // Create a room for the match
-    const result = this.createRoom(otherWs);
+    // Create a room for the match with the first player's customization
+    const result = this.createRoom(otherWs, otherPlayer.customization, otherPlayer.tier);
     if (!result) {
-      // If room creation fails, put both back in queue
-      this.matchmakingQueue.set(newPlayerWs, { ws: newPlayerWs, joinedAt: Date.now() });
-      this.matchmakingQueue.set(otherWs, { ws: otherWs, joinedAt: Date.now() });
+      // If room creation fails, put both back in queue with their original data
+      this.matchmakingQueue.set(newPlayerWs, newPlayerData);
+      this.matchmakingQueue.set(otherWs, otherPlayer);
       return { matched: false };
     }
 
@@ -587,8 +611,8 @@ export class RoomManager {
       roomCode: result.roomCode,
     });
 
-    // Second player joins the room
-    const joinResult = this.joinRoom(newPlayerWs, result.roomCode);
+    // Second player joins the room with their customization
+    const joinResult = this.joinRoom(newPlayerWs, result.roomCode, newPlayerData.customization, newPlayerData.tier);
     if (!joinResult) {
       return { matched: false };
     }
