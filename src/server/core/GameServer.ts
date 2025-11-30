@@ -274,8 +274,9 @@ export class GameServer {
     // Join matchmaking queue
     const result = this.roomManager.joinMatchmaking(ws);
 
-    // If matched, register the player
+    // If matched, register both players
     if (result.matched && result.playerId && result.roomCode) {
+      // Register the current player (who triggered the match)
       this.wsToPlayerId.set(ws, result.playerId);
       this.playerIdToWs.set(result.playerId, ws);
 
@@ -284,6 +285,18 @@ export class GameServer {
         type: "connected",
         playerId: result.playerId,
       });
+
+      // Also register the other player (who was waiting in the queue)
+      if (result.otherPlayerWs && result.otherPlayerId) {
+        this.wsToPlayerId.set(result.otherPlayerWs, result.otherPlayerId);
+        this.playerIdToWs.set(result.otherPlayerId, result.otherPlayerWs);
+
+        // Send connected message to the other player too
+        this.sendToSocket(result.otherPlayerWs, {
+          type: "connected",
+          playerId: result.otherPlayerId,
+        });
+      }
     }
   }
 

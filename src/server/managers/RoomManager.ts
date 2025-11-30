@@ -481,7 +481,13 @@ export class RoomManager {
    * Add a player to the matchmaking queue
    * Returns true if immediately matched with another player
    */
-  joinMatchmaking(ws: WebSocket): { matched: boolean; roomCode?: string; playerId?: string } {
+  joinMatchmaking(ws: WebSocket): { 
+    matched: boolean; 
+    roomCode?: string; 
+    playerId?: string;
+    otherPlayerWs?: WebSocket;
+    otherPlayerId?: string;
+  } {
     // Check if already in queue
     if (this.matchmakingQueue.has(ws)) {
       return { matched: false };
@@ -532,7 +538,13 @@ export class RoomManager {
   /**
    * Try to match two players from the queue
    */
-  private tryMatchPlayers(newPlayerWs: WebSocket): { matched: boolean; roomCode?: string; playerId?: string } {
+  private tryMatchPlayers(newPlayerWs: WebSocket): { 
+    matched: boolean; 
+    roomCode?: string; 
+    playerId?: string;
+    otherPlayerWs?: WebSocket;
+    otherPlayerId?: string;
+  } {
     // Need at least 2 players to match
     if (this.matchmakingQueue.size < 2) {
       return { matched: false };
@@ -590,7 +602,9 @@ export class RoomManager {
     return { 
       matched: true, 
       roomCode: result.roomCode,
-      playerId: joinResult.playerId 
+      playerId: joinResult.playerId,
+      otherPlayerWs: otherWs,
+      otherPlayerId: result.playerId,
     };
   }
 
