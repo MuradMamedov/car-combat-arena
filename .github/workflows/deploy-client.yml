@@ -37,6 +37,7 @@ jobs:
         run: npm run build
         env:
           VITE_WS_SERVER_URL: ${{ vars.WS_SERVER_URL }}
+          VITE_BASE_PATH: /car-combat-arena/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

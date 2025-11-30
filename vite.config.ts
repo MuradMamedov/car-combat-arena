@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  // Base path for GitHub Pages deployment (e.g., /car-combat-arena/)
+  base: process.env.VITE_BASE_PATH || "/",
   root: ".",
   publicDir: "public",
   server: {
