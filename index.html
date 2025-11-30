@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Combat Arena</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&family=Press+Start+2P&family=VT323&family=Share+Tech+Mono&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+  <!-- Theme Selector -->
+  <div class="theme-selector">
+    <button class="theme-btn active" data-theme="cyberpunk" data-tooltip="Cyberpunk"></button>
+    <button class="theme-btn" data-theme="retro" data-tooltip="Retro Arcade"></button>
+    <button class="theme-btn" data-theme="military" data-tooltip="Military"></button>
+    <div class="selector-divider"></div>
+    <button class="sound-btn" id="sound-toggle" data-tooltip="Toggle Sound">🔊</button>
+  </div>
+
+  <!-- Lobby Screen -->
+  <div id="lobby">
+    <h1>CAR COMBAT</h1>
+    <p class="subtitle">Arena</p>
+    <div id="status" class="waiting">Connecting to server...</div>
+    
+    <!-- Menu Carousel -->
+    <div class="menu-carousel">
+      <!-- Left Navigation Arrow -->
+      <button class="menu-nav-arrow menu-nav-left" id="menu-nav-left" data-tooltip="Controls">
+        <span class="arrow-icon">◀</span>
+      </button>
+      
+      <!-- Carousel Content -->
+      <div class="menu-panels">
+        <!-- Panel 0: Controls -->
+        <div class="menu-panel" id="panel-controls">
+          <div class="controls-info">
+            <h3>⚡ Controls</h3>
+            <div class="controls-grid">
+              <div class="control-item"><span class="key">W</span> Accelerate</div>
+              <div class="control-item"><span class="key">S</span> Reverse</div>
+              <div class="control-item"><span class="key">A</span> Turn Left</div>
+              <div class="control-item"><span class="key">D</span> Turn Right</div>
+              <div class="control-item"><span class="key">SPACE</span> Cannon </div>
+              <div class="control-item"><span class="key">Q/E</span> Machine Gun </div>
+              <div class="control-item"><span class="key">SHIFT</span> Boost</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Panel 1: Game Options (Default/Center) -->
+        <div class="menu-panel active" id="panel-game">
+          <!-- Bot Mode Section -->
+          <div class="bot-mode-section">
+            <div class="bot-mode-header">
+              <span class="bot-icon">🤖</span>
+              <span>Play vs Bot</span>
+            </div>
+            <div class="bot-controls">
+              <select id="difficulty-select" class="difficulty-select">
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+              <button id="bot-btn" class="bot-btn">Start Bot Match</button>
+            </div>
+          </div>
+
+          <div class="divider">
+            <span>or play with others</span>
+          </div>
+          
+          <!-- Multiplayer Section -->
+          <div class="multiplayer-section" id="multiplayer-section">
+            <div class="multiplayer-header">
+              <span class="multiplayer-icon">👥</span>
+              <span>Multiplayer</span>
+            </div>
+            
+            <!-- Random Matchmaking -->
+            <button id="random-btn" class="random-btn">
+              <span class="btn-icon">🎲</span>
+              Find Random Match
+            </button>
+            
+            <!-- Matchmaking Status -->
+            <div class="matchmaking-status" id="matchmaking-status" style="display: none;">
+              <div class="matchmaking-spinner"></div>
+              <span class="matchmaking-text">Searching for opponent...</span>
+              <button id="cancel-matchmaking-btn" class="cancel-matchmaking-btn">Cancel</button>
+            </div>
+            
+            <div class="multiplayer-divider">
+              <span>or play with a friend</span>
+            </div>
+            
+            <!-- Host Game -->
+            <button id="host-btn" class="host-btn">
+              Host Game
+            </button>
+            
+            <!-- Room Code Display (shown when hosting) -->
+            <div class="room-code-container" style="display: none;">
+              <span class="room-code-label">Room Code:</span>
+              <span class="room-code" id="room-code-display">------</span>
+              <button id="copy-code-btn" class="copy-btn" data-tooltip="Copy to clipboard">Copy</button>
+            </div>
+            
+            <!-- Join Game -->
+            <div class="join-section">
+              <input 
+                type="text" 
+                id="room-code-input" 
+                class="room-code-input" 
+                placeholder="Enter room code"
+                maxlength="6"
+                autocomplete="off"
+                autocapitalize="characters"
+              />
+              <button id="join-btn" class="join-btn">
+                Join
+              </button>
+            </div>
+            
+            <!-- Leave Room Button (hidden initially) -->
+            <button id="leave-room-btn" class="leave-btn" style="display: none;">
+              <span class="btn-icon">🚪</span>
+              Leave Room
+            </button>
+          </div>
+        </div>
+        
+        <!-- Panel 2: Glider Options -->
+        <div class="menu-panel" id="panel-glider">
+          <!-- Glider Tier Selection -->
+          <div class="tier-selection-section">
+            <div class="tier-header">
+              <span class="tier-icon">✈</span>
+              <span>Select Your Glider</span>
+            </div>
+            <div class="tier-selector">
+              <button class="tier-nav-btn" id="tier-prev">◀</button>
+              <div class="tier-display">
+                <div class="tier-preview" id="tier-preview"></div>
+                <div class="tier-info">
+                  <div class="tier-name" id="tier-name">Hawk</div>
+                  <div class="tier-number" id="tier-number">Tier 3</div>
+                </div>
+                <div class="tier-stats" id="tier-stats">
+                  <div class="stat-row"><span>Health:</span><div class="stat-bar"><div class="stat-fill" id="stat-health"></div></div></div>
+                  <div class="stat-row"><span>Shield:</span><div class="stat-bar"><div class="stat-fill" id="stat-shield"></div></div></div>
+                  <div class="stat-row"><span>Speed:</span><div class="stat-bar"><div class="stat-fill" id="stat-speed"></div></div></div>
+                  <div class="stat-row"><span>Damage:</span><div class="stat-bar"><div class="stat-fill" id="stat-damage"></div></div></div>
+                </div>
+              </div>
+              <button class="tier-nav-btn" id="tier-next">▶</button>
+            </div>
+          </div>
+          
+          <!-- Glider Customization Section -->
+          <div class="customization-section">
+            <div class="customization-header">
+              <span class="customization-icon">🎨</span>
+              <span>Customize Your Glider</span>
+            </div>
+            
+            <!-- Preview -->
+            <div class="customization-preview" id="customization-preview">
+              <div class="preview-glider">✈</div>
+            </div>
+            
+            <!-- Color Selection -->
+            <div class="customization-category">
+              <div class="category-label">Color</div>
+              <div class="option-grid color-options">
+                <div class="color-option selected" data-color-id="cyan" style="--option-color: #00fff2" data-tooltip="Neon Cyan"></div>
+                <div class="color-option" data-color-id="magenta" style="--option-color: #ff00aa" data-tooltip="Hot Pink"></div>
+                <div class="color-option" data-color-id="orange" style="--option-color: #ff6b00" data-tooltip="Solar Flare"></div>
+                <div class="color-option" data-color-id="lime" style="--option-color: #39ff14" data-tooltip="Toxic Green"></div>
+                <div class="color-option" data-color-id="purple" style="--option-color: #8b5cf6" data-tooltip="Void Purple"></div>
+                <div class="color-option" data-color-id="gold" style="--option-color: #fbbf24" data-tooltip="Golden"></div>
+                <div class="color-option" data-color-id="crimson" style="--option-color: #dc2626" data-tooltip="Blood Red"></div>
+                <div class="color-option" data-color-id="ice" style="--option-color: #06b6d4" data-tooltip="Ice Blue"></div>
+                <div class="color-option" data-color-id="ember" style="--option-color: #f97316" data-tooltip="Ember"></div>
+                <div class="color-option" data-color-id="ghost" style="--option-color: #e2e8f0" data-tooltip="Ghost White"></div>
+                <div class="color-option" data-color-id="shadow" style="--option-color: #334155" data-tooltip="Shadow"></div>
+                <div class="color-option" data-color-id="plasma" style="--option-color: #ec4899" data-tooltip="Plasma Pink"></div>
+              </div>
+            </div>
+            
+            <!-- Shape Selection -->
+            <div class="customization-category">
+              <div class="category-label">Shape</div>
+              <div class="option-grid shape-options">
+                <div class="shape-option" data-shape-id="basic" data-tooltip="Classic">
+                  <span class="shape-icon">▷</span>
+                </div>
+                <div class="shape-option" data-shape-id="swept" data-tooltip="Swept">
+                  <span class="shape-icon">⊳</span>
+                </div>
+                <div class="shape-option selected" data-shape-id="delta" data-tooltip="Delta">
+                  <span class="shape-icon">△</span>
+                </div>
+                <div class="shape-option" data-shape-id="angular" data-tooltip="Stealth">
+                  <span class="shape-icon">◇</span>
+                </div>
+                <div class="shape-option" data-shape-id="plasma" data-tooltip="Plasma">
+                  <span class="shape-icon">◎</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Gun Effect Selection -->
+            <div class="customization-category">
+              <div class="category-label">Gun Effect</div>
+              <div class="option-grid gun-options">
+                <div class="gun-option selected" data-gun-id="standard" style="--option-color: #ff6b00" data-tooltip="Standard">
+                  <span class="effect-icon">●</span>
+                </div>
+                <div class="gun-option" data-gun-id="plasma" style="--option-color: #00fff2" data-tooltip="Plasma">
+                  <span class="effect-icon">◉</span>
+                </div>
+                <div class="gun-option" data-gun-id="fire" style="--option-color: #ff4500" data-tooltip="Inferno">
+                  <span class="effect-icon">🔥</span>
+                </div>
+                <div class="gun-option" data-gun-id="electric" style="--option-color: #a855f7" data-tooltip="Lightning">
+                  <span class="effect-icon">⚡</span>
+                </div>
+                <div class="gun-option" data-gun-id="void" style="--option-color: #4c1d95" data-tooltip="Void">
+                  <span class="effect-icon">◌</span>
+                </div>
+                <div class="gun-option" data-gun-id="ice" style="--option-color: #22d3ee" data-tooltip="Cryo">
+                  <span class="effect-icon">❄</span>
+                </div>
+                <div class="gun-option" data-gun-id="toxic" style="--option-color: #22c55e" data-tooltip="Toxic">
+                  <span class="effect-icon">☣</span>
+                </div>
+                <div class="gun-option" data-gun-id="golden" style="--option-color: #fbbf24" data-tooltip="Golden">
+                  <span class="effect-icon">★</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Booster Effect Selection -->
+            <div class="customization-category">
+              <div class="category-label">Booster Effect</div>
+              <div class="option-grid booster-options">
+                <div class="booster-option selected" data-booster-id="standard" style="--option-color: #00d4ff" data-tooltip="Standard">
+                  <span class="effect-icon">≫</span>
+                </div>
+                <div class="booster-option" data-booster-id="plasma" style="--option-color: #00fff2" data-tooltip="Plasma">
+                  <span class="effect-icon">⟫</span>
+                </div>
+                <div class="booster-option" data-booster-id="inferno" style="--option-color: #ff4500" data-tooltip="Inferno">
+                  <span class="effect-icon">🔥</span>
+                </div>
+                <div class="booster-option" data-booster-id="electric" style="--option-color: #8b5cf6" data-tooltip="Electric">
+                  <span class="effect-icon">⚡</span>
+                </div>
+                <div class="booster-option" data-booster-id="ghost" style="--option-color: #94a3b8" data-tooltip="Ghost">
+                  <span class="effect-icon">◇</span>
+                </div>
+                <div class="booster-option" data-booster-id="toxic" style="--option-color: #22c55e" data-tooltip="Toxic">
+                  <span class="effect-icon">☣</span>
+                </div>
+                <div class="booster-option" data-booster-id="pulse" style="--option-color: #ec4899" data-tooltip="Pulse">
+                  <span class="effect-icon">◎</span>
+                </div>
+                <div class="booster-option" data-booster-id="void" style="--option-color: #4c1d95" data-tooltip="Void">
+                  <span class="effect-icon">◌</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Right Navigation Arrow -->
+      <button class="menu-nav-arrow menu-nav-right" id="menu-nav-right" data-tooltip="Glider Options">
+        <span class="arrow-icon">▶</span>
+      </button>
+    </div>
+    
+    <!-- Panel Indicators -->
+    <div class="panel-indicators">
+      <button class="panel-dot" data-panel="0" data-tooltip="Controls"></button>
+      <button class="panel-dot active" data-panel="1" data-tooltip="Play"></button>
+      <button class="panel-dot" data-panel="2" data-tooltip="Glider"></button>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+    
+    <!-- HUD -->
+    <div id="hud">
+      <div class="player-hud player1">
+        <div class="player-name" id="player-name1">Player 1</div>
+        <div class="health-bar-container">
+          <div class="health-bar" id="health1" style="width: 100%"></div>
+          <span class="health-text" id="health-text1">100</span>
+        </div>
+        <div class="shield-bar-container">
+          <div class="shield-bar" id="shield1" style="width: 100%"></div>
+          <span class="shield-text" id="shield-text1">50</span>
+        </div>
+        <div class="score-display">Score: <span id="score1">0</span></div>
+      </div>
+      
+      <div class="player-hud player2">
+        <div class="player-name" id="player-name2">Player 2</div>
+        <div class="health-bar-container">
+          <div class="health-bar" id="health2" style="width: 100%"></div>
+          <span class="health-text" id="health-text2">100</span>
+        </div>
+        <div class="shield-bar-container">
+          <div class="shield-bar" id="shield2" style="width: 100%"></div>
+          <span class="shield-text" id="shield-text2">50</span>
+        </div>
+        <div class="score-display">Score: <span id="score2">0</span></div>
+      </div>
+    </div>
+    
+    <!-- Game Over Overlay -->
+    <div id="game-over">
+      <h2>GAME OVER</h2>
+      <div id="winner-text">Player 1 Wins!</div>
+      <button id="restart-btn">Play Again</button>
+    </div>
+  </div>
+
+  <!-- Main Script -->
+  <script type="module" src="/src/client/main.ts"></script>
+</body>
+</html>

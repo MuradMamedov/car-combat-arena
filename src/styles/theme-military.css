@@ -1,0 +1,281 @@
+/**
+ * Car Combat Arena - Military Tactical Theme
+ * 
+ * Dark ops aesthetic with night-vision greens and amber alerts
+ * Colors: Olive Green (#7fba00), Orange (#ff6600), Amber (#ffa500)
+ * Fonts: Share Tech Mono, Roboto Mono
+ */
+
+/* ==========================================================================
+   Theme Variables
+   ========================================================================== */
+body.theme-military {
+  --primary-accent: #7fba00;
+  --secondary-accent: #ff6600;
+  --highlight: #ffa500;
+  --win-color: #00ff00;
+  --dark-bg: #0d1117;
+  --dark-surface: #161b22;
+  --grid-color: rgba(127, 186, 0, 0.06);
+  --text-color: #c9d1d9;
+  --text-muted: rgba(201, 209, 217, 0.6);
+  
+  --neon-cyan: var(--primary-accent);
+  --neon-pink: var(--secondary-accent);
+  --neon-orange: var(--highlight);
+  --neon-yellow: var(--win-color);
+  
+  --font-display: 'Share Tech Mono', monospace;
+  --font-body: 'Roboto Mono', monospace;
+  
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  
+  --bg-pattern: 
+    linear-gradient(135deg, rgba(127, 186, 0, 0.03) 25%, transparent 25%),
+    linear-gradient(225deg, rgba(127, 186, 0, 0.03) 25%, transparent 25%),
+    linear-gradient(45deg, rgba(127, 186, 0, 0.03) 25%, transparent 25%),
+    linear-gradient(315deg, rgba(127, 186, 0, 0.03) 25%, transparent 25%);
+  --bg-animation: none;
+}
+
+/* ==========================================================================
+   Background Effects
+   ========================================================================== */
+/* Tactical diamond grid */
+body.theme-military::before {
+  background: var(--bg-pattern) !important;
+  background-size: 20px 20px !important;
+  animation: none !important;
+  transform: none !important;
+  opacity: 0.8;
+}
+
+/* Ambient lighting effects */
+body.theme-military::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(
+      circle at 20% 80%,
+      rgba(127, 186, 0, 0.08) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(255, 102, 0, 0.05) 0%,
+      transparent 40%
+    );
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ==========================================================================
+   Lobby Overrides
+   ========================================================================== */
+body.theme-military #lobby {
+  border: 1px solid var(--primary-accent);
+  border-left: 4px solid var(--primary-accent);
+  background: linear-gradient(135deg, rgba(22, 27, 34, 0.98), rgba(13, 17, 23, 0.98));
+  box-shadow: 
+    0 0 30px rgba(127, 186, 0, 0.15),
+    inset 0 1px 0 rgba(127, 186, 0, 0.1);
+}
+
+body.theme-military #lobby h1 {
+  background: linear-gradient(180deg, var(--primary-accent), #4a7000);
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(127, 186, 0, 0.4);
+  letter-spacing: 6px;
+  font-size: 2.2rem;
+}
+
+body.theme-military .subtitle {
+  color: var(--highlight);
+  letter-spacing: 10px;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+body.theme-military #status {
+  background: rgba(127, 186, 0, 0.08);
+  border-left: 3px solid var(--primary-accent);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ==========================================================================
+   Game Canvas
+   ========================================================================== */
+body.theme-military #game-canvas {
+  border: 2px solid var(--primary-accent);
+  box-shadow: 
+    0 0 40px rgba(127, 186, 0, 0.2),
+    inset 0 0 60px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   HUD & Player Elements
+   ========================================================================== */
+body.theme-military .player-hud {
+  background: rgba(13, 17, 23, 0.95);
+  border-width: 1px;
+  border-left-width: 3px;
+}
+
+body.theme-military .player-hud.player1 {
+  border-color: var(--primary-accent);
+  box-shadow: 
+    0 0 20px rgba(127, 186, 0, 0.2),
+    inset 0 0 20px rgba(127, 186, 0, 0.05);
+}
+
+body.theme-military .player-hud.player2 {
+  border-color: var(--secondary-accent);
+  box-shadow: 
+    0 0 20px rgba(255, 102, 0, 0.2),
+    inset 0 0 20px rgba(255, 102, 0, 0.05);
+}
+
+body.theme-military .player-name {
+  font-family: var(--font-display);
+  letter-spacing: 3px;
+  font-size: 0.75rem;
+}
+
+/* ==========================================================================
+   Health Bars
+   ========================================================================== */
+body.theme-military .health-bar-container {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(127, 186, 0, 0.3);
+}
+
+body.theme-military .player-hud.player1 .health-bar {
+  background: linear-gradient(90deg, var(--primary-accent), #5a8a00);
+  box-shadow: 0 0 10px rgba(127, 186, 0, 0.5);
+}
+
+body.theme-military .player-hud.player2 .health-bar {
+  background: linear-gradient(90deg, var(--secondary-accent), #cc5200);
+  box-shadow: 0 0 10px rgba(255, 102, 0, 0.5);
+}
+
+/* ==========================================================================
+   Game Over Screen
+   ========================================================================== */
+body.theme-military #game-over {
+  border: 1px solid var(--win-color);
+  border-left: 4px solid var(--win-color);
+  background: rgba(13, 17, 23, 0.98);
+  box-shadow: 0 0 50px rgba(0, 255, 0, 0.2);
+}
+
+body.theme-military #game-over h2 {
+  color: var(--win-color);
+  text-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+  font-family: var(--font-display);
+  letter-spacing: 4px;
+}
+
+/* ==========================================================================
+   Controls & Info Sections
+   ========================================================================== */
+body.theme-military .controls-info {
+  background: rgba(255, 165, 0, 0.08);
+  border: 1px solid rgba(255, 165, 0, 0.2);
+  border-left: 3px solid var(--highlight);
+}
+
+body.theme-military .controls-info h3 {
+  color: var(--highlight);
+  font-family: var(--font-display);
+  letter-spacing: 2px;
+}
+
+body.theme-military .key {
+  background: var(--dark-surface);
+  border: 1px solid var(--primary-accent);
+  color: var(--primary-accent);
+  font-family: var(--font-display);
+}
+
+/* ==========================================================================
+   Bot Mode Section
+   ========================================================================== */
+body.theme-military .bot-mode-section {
+  background: linear-gradient(135deg, rgba(255, 102, 0, 0.08), rgba(127, 186, 0, 0.08));
+  border: 1px solid rgba(255, 102, 0, 0.3);
+  border-left: 3px solid var(--secondary-accent);
+}
+
+body.theme-military .bot-mode-header {
+  color: var(--secondary-accent);
+  font-family: var(--font-display);
+}
+
+body.theme-military .difficulty-select {
+  border: 1px solid var(--primary-accent);
+  font-family: var(--font-display);
+}
+
+/* ==========================================================================
+   Buttons - Tactical Style
+   ========================================================================== */
+body.theme-military .bot-btn,
+body.theme-military #restart-btn {
+  background: linear-gradient(135deg, var(--primary-accent), #4a7000);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 0 20px rgba(127, 186, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  font-family: var(--font-display);
+  letter-spacing: 2px;
+}
+
+body.theme-military .bot-btn:hover,
+body.theme-military #restart-btn:hover {
+  background: linear-gradient(135deg, #8fca00, #5a9a00);
+  box-shadow: 
+    0 0 30px rgba(127, 186, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* ==========================================================================
+   Menu Navigation Arrows
+   ========================================================================== */
+body.theme-military .menu-nav-arrow {
+  border: 2px solid var(--primary-accent);
+  border-left-width: 3px;
+  background: rgba(127, 186, 0, 0.1);
+  box-shadow: 0 0 15px rgba(127, 186, 0, 0.2);
+}
+
+body.theme-military .menu-nav-arrow:hover {
+  background: rgba(127, 186, 0, 0.25);
+  box-shadow: 0 0 25px rgba(127, 186, 0, 0.4);
+  border-color: var(--secondary-accent);
+}
+
+body.theme-military .panel-dot {
+  border: 2px solid rgba(127, 186, 0, 0.4);
+}
+
+body.theme-military .panel-dot.active {
+  background: var(--primary-accent);
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 12px rgba(127, 186, 0, 0.5);
+}
+
+body.theme-military .multiplayer-hint {
+  background: rgba(127, 186, 0, 0.08);
+  border-color: rgba(127, 186, 0, 0.3);
+}
+
