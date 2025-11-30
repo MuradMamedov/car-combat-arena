@@ -2,6 +2,7 @@ import {
   MAX_PLAYERS,
   SHIELD_RECHARGE_RATE,
   TICK_INTERVAL,
+  TICKS_PER_NETWORK_UPDATE,
 } from "../../shared/constants/index.js";
 import type { GameState } from "../../shared/types/index.js";
 import type { PlayerData } from "../managers/index.js";
@@ -39,6 +40,9 @@ export class GameEngine {
   private boonManager: BoonManager;
   private events: GameEngineEvents;
   private gameLoopInterval: NodeJS.Timeout | null = null;
+  
+  // Network optimization: only send state updates every N physics ticks
+  private tickCounter: number = 0;
 
   constructor(
     playerManager: PlayerManager,
@@ -80,6 +84,9 @@ export class GameEngine {
 
     // Generate random walls for this round
     this.stateManager.generateWalls();
+    
+    // Reset tick counter for network optimization
+    this.tickCounter = 0;
 
     // Notify listeners
     this.events.onGameStart(this.stateManager.getState());
@@ -152,8 +159,11 @@ export class GameEngine {
     // Check win condition
     this.checkWinCondition();
 
-    // Broadcast state if still playing
-    if (this.stateManager.isPlaying()) {
+    // Increment tick counter and broadcast state at reduced rate
+    // Physics runs at 60 Hz, but network updates only at ~20 Hz (every 3 ticks)
+    this.tickCounter++;
+    if (this.stateManager.isPlaying() && this.tickCounter >= TICKS_PER_NETWORK_UPDATE) {
+      this.tickCounter = 0;
       this.events.onGameUpdate(state);
     }
   }

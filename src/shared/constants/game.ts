@@ -67,6 +67,22 @@ export const TICK_RATE = 60;
 export const TICK_INTERVAL = 1000 / TICK_RATE;
 
 /**
+ * Network optimization constants
+ * Physics runs at TICK_RATE (60 Hz) but network updates at NETWORK_TICK_RATE (20 Hz)
+ * This reduces server->client bandwidth by ~67% while maintaining smooth physics
+ */
+export const NETWORK_TICK_RATE = 20;
+export const NETWORK_TICK_INTERVAL = 1000 / NETWORK_TICK_RATE;
+export const TICKS_PER_NETWORK_UPDATE = Math.round(
+  TICK_RATE / NETWORK_TICK_RATE
+);
+
+/**
+ * Client input throttle (ms) - don't send inputs faster than this
+ */
+export const INPUT_THROTTLE_MS = 16; // ~60 Hz max for inputs
+
+/**
  * Player spawn configurations
  */
 export const PLAYER_SPAWN_POSITIONS = [

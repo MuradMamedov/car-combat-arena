@@ -1,5 +1,5 @@
 import type { PlayerInput, Vector2 } from "../../shared/index.js";
-import { createDefaultInput } from "../../shared/index.js";
+import { createDefaultInput, INPUT_THROTTLE_MS } from "../../shared/index.js";
 
 /**
  * Key binding configuration
@@ -66,6 +66,12 @@ export class InputManager {
   private isMouseOnCanvas = false;
   private leftMouseDown = false;
   private rightMouseDown = false;
+  
+  // Input throttling - reduce network traffic by limiting how often we send updates
+  private lastInputSendTime: number = 0;
+  private pendingNotify: boolean = false;
+  private throttleTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private lastSentInput: PlayerInput | null = null;
 
   // Bound event handlers for cleanup
   private boundHandleKeyDown: (e: KeyboardEvent) => void;
@@ -186,12 +192,12 @@ export class InputManager {
       // Left click - machine gun
       this.leftMouseDown = true;
       this.input.shootMachineGun = true;
-      this.notifyChange();
+      this.notifyChange(true); // Immediate for discrete action
     } else if (event.button === 2) {
       // Right click - cannon
       this.rightMouseDown = true;
       this.input.shootCannon = true;
-      this.notifyChange();
+      this.notifyChange(true); // Immediate for discrete action
     }
   }
 
@@ -205,12 +211,12 @@ export class InputManager {
       // Left click released - stop machine gun
       this.leftMouseDown = false;
       this.input.shootMachineGun = false;
-      this.notifyChange();
+      this.notifyChange(true); // Immediate for discrete action
     } else if (event.button === 2 && this.rightMouseDown) {
       // Right click released - stop cannon
       this.rightMouseDown = false;
       this.input.shootCannon = false;
-      this.notifyChange();
+      this.notifyChange(true); // Immediate for discrete action
     }
   }
 
@@ -227,7 +233,7 @@ export class InputManager {
   private handleMouseEnter(): void {
     this.isMouseOnCanvas = true;
     this.input.useMouseControl = true;
-    this.notifyChange();
+    this.notifyChange(true); // Immediate for mode change
   }
 
   /**
@@ -246,7 +252,7 @@ export class InputManager {
       this.rightMouseDown = false;
       this.input.shootCannon = false;
     }
-    this.notifyChange();
+    this.notifyChange(true); // Immediate for mode change
   }
 
   /**
@@ -264,7 +270,7 @@ export class InputManager {
     const dy = this.mousePosition.y - this.carPosition.y;
     this.input.targetAngle = Math.atan2(dy, dx);
     this.input.useMouseControl = true;
-    this.notifyChange();
+    this.notifyChange(); // Throttled - continuous mouse movement
   }
 
   /**
@@ -276,7 +282,7 @@ export class InputManager {
     const action = this.keyToAction.get(event.code);
     if (action && !this.input[action]) {
       this.input[action] = true;
-      this.notifyChange();
+      this.notifyChange(true); // Immediate for discrete action
       event.preventDefault();
     }
   }
@@ -290,18 +296,83 @@ export class InputManager {
     const action = this.keyToAction.get(event.code);
     if (action) {
       this.input[action] = false;
-      this.notifyChange();
+      this.notifyChange(true); // Immediate for discrete action
       event.preventDefault();
     }
   }
 
   /**
-   * Notify listeners of input change
+   * Notify listeners of input change with throttling
+   * Immediate sends for discrete actions (key presses), throttled for continuous (mouse)
    */
-  private notifyChange(): void {
-    if (this.onInputChange) {
-      this.onInputChange({ ...this.input });
+  private notifyChange(immediate: boolean = false): void {
+    if (!this.onInputChange) return;
+    
+    const now = performance.now();
+    const timeSinceLastSend = now - this.lastInputSendTime;
+    
+    // Check if input actually changed (skip duplicate sends)
+    const currentInput = { ...this.input };
+    if (this.lastSentInput && this.inputsEqual(this.lastSentInput, currentInput)) {
+      return;
     }
+    
+    // Immediate send for discrete actions or if enough time has passed
+    if (immediate || timeSinceLastSend >= INPUT_THROTTLE_MS) {
+      this.sendInput(currentInput);
+      return;
+    }
+    
+    // Schedule a delayed send for throttled updates
+    if (!this.pendingNotify) {
+      this.pendingNotify = true;
+      const delay = INPUT_THROTTLE_MS - timeSinceLastSend;
+      
+      this.throttleTimeoutId = setTimeout(() => {
+        this.pendingNotify = false;
+        this.throttleTimeoutId = null;
+        // Send the latest input state
+        if (this.onInputChange) {
+          const latestInput = { ...this.input };
+          if (!this.lastSentInput || !this.inputsEqual(this.lastSentInput, latestInput)) {
+            this.sendInput(latestInput);
+          }
+        }
+      }, delay);
+    }
+  }
+  
+  /**
+   * Actually send the input
+   */
+  private sendInput(inputState: PlayerInput): void {
+    this.lastInputSendTime = performance.now();
+    this.lastSentInput = { ...inputState };
+    if (this.onInputChange) {
+      this.onInputChange(inputState);
+    }
+  }
+  
+  /**
+   * Compare two input states for equality
+   */
+  private inputsEqual(a: PlayerInput, b: PlayerInput): boolean {
+    return (
+      a.forward === b.forward &&
+      a.backward === b.backward &&
+      a.left === b.left &&
+      a.right === b.right &&
+      a.shoot === b.shoot &&
+      a.shootCannon === b.shootCannon &&
+      a.shootMachineGun === b.shootMachineGun &&
+      a.boost === b.boost &&
+      a.useMouseControl === b.useMouseControl &&
+      // For targetAngle, consider them equal if both undefined or within small threshold
+      (a.targetAngle === b.targetAngle ||
+        (a.targetAngle !== undefined &&
+          b.targetAngle !== undefined &&
+          Math.abs(a.targetAngle - b.targetAngle) < 0.01))
+    );
   }
 
   /**
@@ -354,6 +425,12 @@ export class InputManager {
    * Clean up event listeners
    */
   destroy(): void {
+    // Clear any pending throttle timeout
+    if (this.throttleTimeoutId) {
+      clearTimeout(this.throttleTimeoutId);
+      this.throttleTimeoutId = null;
+    }
+    
     document.removeEventListener("keydown", this.boundHandleKeyDown);
     document.removeEventListener("keyup", this.boundHandleKeyUp);
     document.removeEventListener("mouseup", this.boundHandleMouseUp);
