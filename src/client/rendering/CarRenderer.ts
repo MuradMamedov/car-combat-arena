@@ -510,6 +510,9 @@ export class CarRenderer {
     // Tier indicator (drawn in world space)
     this.drawTierIndicator(ctx, car);
 
+    // Player name (drawn in world space) - visible to all players
+    this.drawPlayerName(ctx, car, isCurrentPlayer);
+
     // "YOU" indicator
     if (isCurrentPlayer) {
       this.drawPlayerIndicator(ctx, car);
@@ -1916,6 +1919,64 @@ export class CarRenderer {
     ctx.shadowColor = this.themeColors.winColor;
     ctx.shadowBlur = 8;
     ctx.fillText("YOU", car.x, car.y - GLIDER_WINGSPAN / 2 - 35);
+    ctx.shadowBlur = 0;
+  }
+
+  /**
+   * Draw player name above the glider
+   */
+  private drawPlayerName(
+    ctx: CanvasRenderingContext2D,
+    car: CarState,
+    isCurrentPlayer: boolean
+  ): void {
+    // Get display name, skip if default or empty
+    const displayName = car.displayName;
+    if (!displayName || displayName === "Player") return;
+
+    const x = car.x;
+    // Position above the "YOU" indicator for current player, or above glider for others
+    const y = isCurrentPlayer 
+      ? car.y - GLIDER_WINGSPAN / 2 - 50 
+      : car.y - GLIDER_WINGSPAN / 2 - 35;
+    
+    const glowColor = car.glowColor || car.color;
+    
+    // Measure text for background
+    ctx.font = "bold 11px Orbitron";
+    const textWidth = ctx.measureText(displayName).width;
+    const padding = 8;
+    const badgeWidth = textWidth + padding * 2;
+    const badgeHeight = 18;
+
+    // Name badge background
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.beginPath();
+    ctx.roundRect(
+      x - badgeWidth / 2,
+      y - badgeHeight / 2,
+      badgeWidth,
+      badgeHeight,
+      4
+    );
+    ctx.fill();
+
+    // Name badge border with glow
+    ctx.strokeStyle = glowColor;
+    ctx.lineWidth = 1;
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = 6;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Player name text
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 11px Orbitron";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = 4;
+    ctx.fillText(displayName, x, y);
     ctx.shadowBlur = 0;
   }
 

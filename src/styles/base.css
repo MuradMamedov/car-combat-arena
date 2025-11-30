@@ -444,6 +444,77 @@ body::before {
 /* ==========================================================================
    Customization Section
    ========================================================================== */
+/* Player Name Input Section */
+.player-name-section {
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: linear-gradient(135deg, rgba(0, 255, 242, 0.1), rgba(255, 0, 170, 0.1));
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 255, 242, 0.4);
+}
+
+.name-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--primary-accent);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.name-icon {
+  font-size: 1.2rem;
+}
+
+.player-name-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(0, 255, 242, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--text-color);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  text-align: center;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.player-name-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-body);
+}
+
+.player-name-input:focus {
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 15px rgba(0, 255, 242, 0.3), inset 0 0 10px rgba(0, 255, 242, 0.1);
+}
+
+.player-name-input:hover:not(:focus) {
+  border-color: rgba(0, 255, 242, 0.5);
+}
+
+.player-name-input.name-required {
+  border-color: #ff4444;
+  box-shadow: 0 0 20px rgba(255, 68, 68, 0.6), inset 0 0 10px rgba(255, 68, 68, 0.2);
+  animation: nameRequiredPulse 0.5s ease-in-out 3;
+}
+
+@keyframes nameRequiredPulse {
+  0%, 100% { 
+    border-color: #ff4444;
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.6), inset 0 0 10px rgba(255, 68, 68, 0.2);
+  }
+  50% { 
+    border-color: #ff8888;
+    box-shadow: 0 0 30px rgba(255, 68, 68, 0.9), inset 0 0 15px rgba(255, 68, 68, 0.4);
+  }
+}
+
 .customization-section {
   margin-top: var(--spacing-md);
   padding: var(--spacing-md);

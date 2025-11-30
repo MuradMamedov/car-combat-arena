@@ -48,6 +48,8 @@ export interface GameClientConfig {
     randomBtn?: string;
     matchmakingStatus?: string;
     cancelMatchmakingBtn?: string;
+    // Player name input
+    playerNameInput?: string;
   };
   hudElements: {
     health1: string;
@@ -99,6 +101,8 @@ const DEFAULT_CONFIG: GameClientConfig = {
     randomBtn: "random-btn",
     matchmakingStatus: "matchmaking-status",
     cancelMatchmakingBtn: "cancel-matchmaking-btn",
+    // Player name input
+    playerNameInput: "player-name-input",
   },
   hudElements: {
     health1: "health1",
@@ -177,6 +181,8 @@ export class GameClient {
     this.inputManager.setOnInputChange((input) => {
       this.networkManager.send({ type: "input", input });
     });
+    // Disable input controls until game starts
+    this.inputManager.disable();
 
     // Initialize network
     this.networkManager = new NetworkManager(this.config.serverUrl, {
@@ -204,6 +210,7 @@ export class GameClient {
     this.setupCustomization();
     this.setupMultiplayerButtons();
     this.setupMatchmakingButtons();
+    this.setupPlayerNameInput();
     
     // Load saved customization from localStorage
     this.loadCustomization();
@@ -277,6 +284,47 @@ export class GameClient {
   }
 
   /**
+   * Check if player has entered a valid name for multiplayer
+   */
+  private validatePlayerName(): boolean {
+    const playerName = this.customization.displayName?.trim();
+    if (!playerName || playerName === "Player") {
+      this.hudController.setStatus("Please enter your name in the Glider panel first!", false);
+      this.highlightNameInput();
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Highlight the name input to prompt the user
+   */
+  private highlightNameInput(): void {
+    const playerNameInput = document.getElementById(this.config.elements.playerNameInput || "") as HTMLInputElement | null;
+    if (playerNameInput) {
+      playerNameInput.classList.add("name-required");
+      playerNameInput.focus();
+      // Navigate to glider panel
+      const gliderPanel = document.getElementById("panel-glider");
+      if (gliderPanel) {
+        // Trigger panel switch to glider panel (panel 2)
+        const panelDots = document.querySelectorAll(".panel-dot");
+        panelDots.forEach((dot, index) => {
+          dot.classList.toggle("active", index === 2);
+        });
+        const panels = document.querySelectorAll(".menu-panel");
+        panels.forEach((panel, index) => {
+          panel.classList.toggle("active", index === 2);
+        });
+      }
+      // Remove highlight after animation
+      setTimeout(() => {
+        playerNameInput.classList.remove("name-required");
+      }, 2000);
+    }
+  }
+
+  /**
    * Set up multiplayer buttons
    */
   private setupMultiplayerButtons(): void {
@@ -289,6 +337,7 @@ export class GameClient {
     // Host button
     if (hostBtn) {
       hostBtn.addEventListener("click", () => {
+        if (!this.validatePlayerName()) return;
         this.networkManager.createRoom();
         this.hudController.setStatus("Creating room...", true);
       });
@@ -297,6 +346,7 @@ export class GameClient {
     // Join button
     if (joinBtn && roomCodeInput) {
       joinBtn.addEventListener("click", () => {
+        if (!this.validatePlayerName()) return;
         const roomCode = roomCodeInput.value.trim();
         if (roomCode) {
           this.networkManager.joinRoom(roomCode);
@@ -309,6 +359,7 @@ export class GameClient {
       // Also allow pressing Enter to join
       roomCodeInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
+          if (!this.validatePlayerName()) return;
           const roomCode = roomCodeInput.value.trim();
           if (roomCode) {
             this.networkManager.joinRoom(roomCode);
@@ -353,6 +404,7 @@ export class GameClient {
     if (randomBtn) {
       randomBtn.addEventListener("click", () => {
         if (!this.isMatchmaking && !this.isInRoom) {
+          if (!this.validatePlayerName()) return;
           this.networkManager.findMatch();
           this.hudController.setStatus("Searching for opponent...", true);
         }
@@ -367,6 +419,37 @@ export class GameClient {
         }
       });
     }
+  }
+
+  /**
+   * Set up player name input handler
+   */
+  private setupPlayerNameInput(): void {
+    const playerNameInput = document.getElementById(this.config.elements.playerNameInput || "") as HTMLInputElement | null;
+    
+    if (playerNameInput) {
+      // Update customization when name changes (on blur or enter)
+      playerNameInput.addEventListener("blur", () => {
+        this.setPlayerName(playerNameInput.value.trim());
+      });
+      
+      playerNameInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          playerNameInput.blur();
+        }
+      });
+    }
+  }
+
+  /**
+   * Set player display name
+   */
+  private setPlayerName(name: string): void {
+    // Use a default if empty
+    const displayName = name || "Player";
+    this.customization.displayName = displayName;
+    this.saveCustomization();
+    this.sendCustomization();
   }
 
   /**
@@ -542,6 +625,12 @@ export class GameClient {
     this.updateShapeSelection(this.customization.shapePresetId);
     this.updateGunSelection(this.customization.gunEffectPresetId);
     this.updateBoosterSelection(this.customization.boosterEffectPresetId);
+    
+    // Restore player name in input
+    const playerNameInput = document.getElementById(this.config.elements.playerNameInput || "") as HTMLInputElement | null;
+    if (playerNameInput && this.customization.displayName) {
+      playerNameInput.value = this.customization.displayName;
+    }
   }
 
   /**
@@ -861,6 +950,8 @@ export class GameClient {
     this.hudController.reset();
     this.updateInputCarPosition();
     this.soundManager.play("gameStart");
+    // Enable input controls when entering the game map
+    this.inputManager.enable();
     this.startGameLoop();
   }
 
@@ -902,6 +993,9 @@ export class GameClient {
 
     // Stop any ongoing sounds
     this.soundManager.stopBoost();
+    
+    // Disable input controls when game is over
+    this.inputManager.disable();
   }
 
   /**
@@ -914,6 +1008,8 @@ export class GameClient {
     );
     this.screenManager.showLobby();
     this.stopGameLoop();
+    // Disable input controls when returning to lobby
+    this.inputManager.disable();
   }
 
   /**
@@ -931,6 +1027,8 @@ export class GameClient {
     this.screenManager.showLobby();
     this.stopGameLoop();
     this.resetRoomState();
+    // Disable input controls when returning to lobby
+    this.inputManager.disable();
   }
 
   /**
