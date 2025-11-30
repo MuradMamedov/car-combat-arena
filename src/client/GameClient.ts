@@ -1,10 +1,10 @@
 import type { GameState, PlayerCustomization } from "../shared/index.js";
 import {
+  COLOR_PRESETS,
+  DEFAULT_CUSTOMIZATION,
   GAME_HEIGHT,
   GAME_WIDTH,
   GLIDER_TIERS,
-  DEFAULT_CUSTOMIZATION,
-  COLOR_PRESETS,
   type GliderTier,
 } from "../shared/index.js";
 import { getSoundManager, SoundManager } from "./audio/index.js";
@@ -154,7 +154,7 @@ export class GameClient {
 
   // Tier selection
   private selectedTier: GliderTier = 3;
-  
+
   // Customization state
   private customization: PlayerCustomization = { ...DEFAULT_CUSTOMIZATION };
 
@@ -205,9 +205,11 @@ export class GameClient {
       onConnectionLost: () => this.handleConnectionLost(),
       onBotAdded: (botId) => this.handleBotAdded(botId),
       onRoomCreated: (roomCode) => this.handleRoomCreated(roomCode),
-      onRoomJoined: (roomCode, playerCount) => this.handleRoomJoined(roomCode, playerCount),
+      onRoomJoined: (roomCode, playerCount) =>
+        this.handleRoomJoined(roomCode, playerCount),
       onRoomError: (message) => this.handleRoomError(message),
-      onMatchmakingStatus: (status, queuePosition) => this.handleMatchmakingStatus(status, queuePosition),
+      onMatchmakingStatus: (status, queuePosition) =>
+        this.handleMatchmakingStatus(status, queuePosition),
       onMatchFound: (roomCode) => this.handleMatchFound(roomCode),
     });
 
@@ -220,7 +222,7 @@ export class GameClient {
     this.setupMatchmakingButtons();
     this.setupPlayerNameInput();
     this.setupLeaveGameButton();
-    
+
     // Load saved customization from localStorage
     this.loadCustomization();
   }
@@ -297,8 +299,8 @@ export class GameClient {
    */
   private validatePlayerName(): boolean {
     const playerName = this.customization.displayName?.trim();
-    if (!playerName || playerName === "Player") {
-      this.hudController.setStatus("Please enter your name in the Glider panel first!", false);
+    if (!playerName) {
+      this.hudController.setStatus("Please enter your name first!", false);
       this.highlightNameInput();
       return false;
     }
@@ -309,21 +311,23 @@ export class GameClient {
    * Highlight the name input to prompt the user
    */
   private highlightNameInput(): void {
-    const playerNameInput = document.getElementById(this.config.elements.playerNameInput || "") as HTMLInputElement | null;
+    const playerNameInput = document.getElementById(
+      this.config.elements.playerNameInput || ""
+    ) as HTMLInputElement | null;
     if (playerNameInput) {
       playerNameInput.classList.add("name-required");
       playerNameInput.focus();
-      // Navigate to glider panel
-      const gliderPanel = document.getElementById("panel-glider");
-      if (gliderPanel) {
-        // Trigger panel switch to glider panel (panel 2)
+      // Navigate to game panel (panel 1) where the name input is
+      const gamePanel = document.getElementById("panel-game");
+      if (gamePanel) {
+        // Trigger panel switch to game panel (panel 1)
         const panelDots = document.querySelectorAll(".panel-dot");
         panelDots.forEach((dot, index) => {
-          dot.classList.toggle("active", index === 2);
+          dot.classList.toggle("active", index === 1);
         });
         const panels = document.querySelectorAll(".menu-panel");
         panels.forEach((panel, index) => {
-          panel.classList.toggle("active", index === 2);
+          panel.classList.toggle("active", index === 1);
         });
       }
       // Remove highlight after animation
@@ -339,9 +343,15 @@ export class GameClient {
   private setupMultiplayerButtons(): void {
     const hostBtn = document.getElementById(this.config.elements.hostBtn || "");
     const joinBtn = document.getElementById(this.config.elements.joinBtn || "");
-    const roomCodeInput = document.getElementById(this.config.elements.roomCodeInput || "") as HTMLInputElement | null;
-    const copyCodeBtn = document.getElementById(this.config.elements.copyCodeBtn || "");
-    const leaveRoomBtn = document.getElementById(this.config.elements.leaveRoomBtn || "");
+    const roomCodeInput = document.getElementById(
+      this.config.elements.roomCodeInput || ""
+    ) as HTMLInputElement | null;
+    const copyCodeBtn = document.getElementById(
+      this.config.elements.copyCodeBtn || ""
+    );
+    const leaveRoomBtn = document.getElementById(
+      this.config.elements.leaveRoomBtn || ""
+    );
 
     // Host button
     if (hostBtn) {
@@ -406,8 +416,12 @@ export class GameClient {
    * Set up matchmaking buttons
    */
   private setupMatchmakingButtons(): void {
-    const randomBtn = document.getElementById(this.config.elements.randomBtn || "");
-    const cancelMatchmakingBtn = document.getElementById(this.config.elements.cancelMatchmakingBtn || "");
+    const randomBtn = document.getElementById(
+      this.config.elements.randomBtn || ""
+    );
+    const cancelMatchmakingBtn = document.getElementById(
+      this.config.elements.cancelMatchmakingBtn || ""
+    );
 
     // Random match button
     if (randomBtn) {
@@ -434,14 +448,16 @@ export class GameClient {
    * Set up player name input handler
    */
   private setupPlayerNameInput(): void {
-    const playerNameInput = document.getElementById(this.config.elements.playerNameInput || "") as HTMLInputElement | null;
-    
+    const playerNameInput = document.getElementById(
+      this.config.elements.playerNameInput || ""
+    ) as HTMLInputElement | null;
+
     if (playerNameInput) {
       // Update customization when name changes (on blur or enter)
       playerNameInput.addEventListener("blur", () => {
         this.setPlayerName(playerNameInput.value.trim());
       });
-      
+
       playerNameInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
           playerNameInput.blur();
@@ -454,8 +470,10 @@ export class GameClient {
    * Set up leave game button handler (for leaving during gameplay)
    */
   private setupLeaveGameButton(): void {
-    const leaveGameBtn = document.getElementById(this.config.elements.leaveGameBtn || "");
-    
+    const leaveGameBtn = document.getElementById(
+      this.config.elements.leaveGameBtn || ""
+    );
+
     if (leaveGameBtn) {
       leaveGameBtn.addEventListener("click", () => {
         this.leaveGame();
@@ -469,22 +487,22 @@ export class GameClient {
   private leaveGame(): void {
     // Stop the game loop
     this.stopGameLoop();
-    
+
     // Stop any ongoing sounds
     this.soundManager.stopBoost();
-    
+
     // Disable input controls
     this.inputManager.disable();
-    
+
     // Leave the room on the server
     this.networkManager.leaveRoom();
-    
+
     // Reset room state
     this.resetRoomState();
-    
+
     // Hide game over overlay if visible
     this.screenManager.hideGameOver();
-    
+
     // Return to lobby
     this.screenManager.showLobby();
     this.hudController.setStatus("Left game. Choose a game mode.", true);
@@ -494,9 +512,7 @@ export class GameClient {
    * Set player display name
    */
   private setPlayerName(name: string): void {
-    // Use a default if empty
-    const displayName = name || "Player";
-    this.customization.displayName = displayName;
+    this.customization.displayName = name;
     this.saveCustomization();
     this.sendCustomization();
   }
@@ -608,9 +624,10 @@ export class GameClient {
    */
   private setupCustomization(): void {
     // Color preset selection
-    const colorOptions = document.querySelectorAll<HTMLElement>('.color-option');
+    const colorOptions =
+      document.querySelectorAll<HTMLElement>(".color-option");
     colorOptions.forEach((option) => {
-      option.addEventListener('click', () => {
+      option.addEventListener("click", () => {
         const colorId = option.dataset.colorId;
         if (colorId) {
           this.setCustomizationColor(colorId);
@@ -620,9 +637,10 @@ export class GameClient {
     });
 
     // Shape preset selection
-    const shapeOptions = document.querySelectorAll<HTMLElement>('.shape-option');
+    const shapeOptions =
+      document.querySelectorAll<HTMLElement>(".shape-option");
     shapeOptions.forEach((option) => {
-      option.addEventListener('click', () => {
+      option.addEventListener("click", () => {
         const shapeId = option.dataset.shapeId;
         if (shapeId) {
           this.setCustomizationShape(shapeId);
@@ -632,9 +650,9 @@ export class GameClient {
     });
 
     // Gun effect preset selection
-    const gunOptions = document.querySelectorAll<HTMLElement>('.gun-option');
+    const gunOptions = document.querySelectorAll<HTMLElement>(".gun-option");
     gunOptions.forEach((option) => {
-      option.addEventListener('click', () => {
+      option.addEventListener("click", () => {
         const gunId = option.dataset.gunId;
         if (gunId) {
           this.setCustomizationGun(gunId);
@@ -644,9 +662,10 @@ export class GameClient {
     });
 
     // Booster effect preset selection
-    const boosterOptions = document.querySelectorAll<HTMLElement>('.booster-option');
+    const boosterOptions =
+      document.querySelectorAll<HTMLElement>(".booster-option");
     boosterOptions.forEach((option) => {
-      option.addEventListener('click', () => {
+      option.addEventListener("click", () => {
         const boosterId = option.dataset.boosterId;
         if (boosterId) {
           this.setCustomizationBooster(boosterId);
@@ -660,7 +679,7 @@ export class GameClient {
    * Load customization from localStorage
    */
   private loadCustomization(): void {
-    const saved = localStorage.getItem('gliderCustomization');
+    const saved = localStorage.getItem("gliderCustomization");
     if (saved) {
       try {
         this.customization = { ...DEFAULT_CUSTOMIZATION, ...JSON.parse(saved) };
@@ -668,15 +687,17 @@ export class GameClient {
         this.customization = { ...DEFAULT_CUSTOMIZATION };
       }
     }
-    
+
     // Update UI to reflect loaded customization
     this.updateColorSelection(this.customization.colorPresetId);
     this.updateShapeSelection(this.customization.shapePresetId);
     this.updateGunSelection(this.customization.gunEffectPresetId);
     this.updateBoosterSelection(this.customization.boosterEffectPresetId);
-    
+
     // Restore player name in input
-    const playerNameInput = document.getElementById(this.config.elements.playerNameInput || "") as HTMLInputElement | null;
+    const playerNameInput = document.getElementById(
+      this.config.elements.playerNameInput || ""
+    ) as HTMLInputElement | null;
     if (playerNameInput && this.customization.displayName) {
       playerNameInput.value = this.customization.displayName;
     }
@@ -686,7 +707,10 @@ export class GameClient {
    * Save customization to localStorage
    */
   private saveCustomization(): void {
-    localStorage.setItem('gliderCustomization', JSON.stringify(this.customization));
+    localStorage.setItem(
+      "gliderCustomization",
+      JSON.stringify(this.customization)
+    );
   }
 
   /**
@@ -694,7 +718,10 @@ export class GameClient {
    */
   private sendCustomization(): void {
     if (this.isInRoom) {
-      this.networkManager.send({ type: 'customization', customization: this.customization });
+      this.networkManager.send({
+        type: "customization",
+        customization: this.customization,
+      });
     }
   }
 
@@ -738,18 +765,18 @@ export class GameClient {
    * Update color selection UI
    */
   private updateColorSelection(colorId: string): void {
-    const options = document.querySelectorAll<HTMLElement>('.color-option');
+    const options = document.querySelectorAll<HTMLElement>(".color-option");
     options.forEach((opt) => {
-      opt.classList.toggle('selected', opt.dataset.colorId === colorId);
+      opt.classList.toggle("selected", opt.dataset.colorId === colorId);
     });
-    
+
     // Update the preview
-    const preset = COLOR_PRESETS.find(p => p.id === colorId);
+    const preset = COLOR_PRESETS.find((p) => p.id === colorId);
     if (preset) {
-      const preview = document.getElementById('customization-preview');
+      const preview = document.getElementById("customization-preview");
       if (preview) {
-        preview.style.setProperty('--custom-color', preset.primary);
-        preview.style.setProperty('--custom-glow', preset.glow);
+        preview.style.setProperty("--custom-color", preset.primary);
+        preview.style.setProperty("--custom-glow", preset.glow);
       }
     }
   }
@@ -758,9 +785,9 @@ export class GameClient {
    * Update shape selection UI
    */
   private updateShapeSelection(shapeId: string): void {
-    const options = document.querySelectorAll<HTMLElement>('.shape-option');
+    const options = document.querySelectorAll<HTMLElement>(".shape-option");
     options.forEach((opt) => {
-      opt.classList.toggle('selected', opt.dataset.shapeId === shapeId);
+      opt.classList.toggle("selected", opt.dataset.shapeId === shapeId);
     });
   }
 
@@ -768,9 +795,9 @@ export class GameClient {
    * Update gun effect selection UI
    */
   private updateGunSelection(gunId: string): void {
-    const options = document.querySelectorAll<HTMLElement>('.gun-option');
+    const options = document.querySelectorAll<HTMLElement>(".gun-option");
     options.forEach((opt) => {
-      opt.classList.toggle('selected', opt.dataset.gunId === gunId);
+      opt.classList.toggle("selected", opt.dataset.gunId === gunId);
     });
   }
 
@@ -778,9 +805,9 @@ export class GameClient {
    * Update booster effect selection UI
    */
   private updateBoosterSelection(boosterId: string): void {
-    const options = document.querySelectorAll<HTMLElement>('.booster-option');
+    const options = document.querySelectorAll<HTMLElement>(".booster-option");
     options.forEach((opt) => {
-      opt.classList.toggle('selected', opt.dataset.boosterId === boosterId);
+      opt.classList.toggle("selected", opt.dataset.boosterId === boosterId);
     });
   }
 
@@ -814,24 +841,28 @@ export class GameClient {
   private handleRoomCreated(roomCode: string): void {
     this.currentRoomCode = roomCode;
     this.isInRoom = true;
-    
+
     // Update UI
     this.showRoomCode(roomCode);
     this.updateMultiplayerUI(true);
-    
+
     // Send customization and tier
     this.sendCustomization();
     this.networkManager.send({ type: "selectTier", tier: this.selectedTier });
-    
+
     // Check if we have a pending bot request
     const botBtn = document.getElementById(this.config.elements.botBtn || "");
     if (botBtn && botBtn.dataset.pendingBot === "true") {
-      const difficulty = (botBtn.dataset.difficulty as BotDifficultyLevel) || "medium";
+      const difficulty =
+        (botBtn.dataset.difficulty as BotDifficultyLevel) || "medium";
       delete botBtn.dataset.pendingBot;
       delete botBtn.dataset.difficulty;
       this.requestBot(difficulty);
     } else {
-      this.hudController.setStatus(`Room created! Share code: ${roomCode}`, true);
+      this.hudController.setStatus(
+        `Room created! Share code: ${roomCode}`,
+        true
+      );
     }
   }
 
@@ -841,15 +872,15 @@ export class GameClient {
   private handleRoomJoined(roomCode: string, _playerCount: number): void {
     this.currentRoomCode = roomCode;
     this.isInRoom = true;
-    
+
     // Update UI
     this.showRoomCode(roomCode);
     this.updateMultiplayerUI(true);
-    
+
     // Send customization and tier
     this.sendCustomization();
     this.networkManager.send({ type: "selectTier", tier: this.selectedTier });
-    
+
     this.hudController.setStatus(`Joined room ${roomCode}!`, true);
   }
 
@@ -863,14 +894,20 @@ export class GameClient {
   /**
    * Handle matchmaking status event
    */
-  private handleMatchmakingStatus(status: "searching" | "cancelled", _queuePosition?: number): void {
+  private handleMatchmakingStatus(
+    status: "searching" | "cancelled",
+    _queuePosition?: number
+  ): void {
     if (status === "searching") {
       this.isMatchmaking = true;
       this.updateMatchmakingUI(true);
     } else if (status === "cancelled") {
       this.isMatchmaking = false;
       this.updateMatchmakingUI(false);
-      this.hudController.setStatus("Matchmaking cancelled. Choose a game mode.", true);
+      this.hudController.setStatus(
+        "Matchmaking cancelled. Choose a game mode.",
+        true
+      );
     }
   }
 
@@ -881,15 +918,15 @@ export class GameClient {
     this.isMatchmaking = false;
     this.currentRoomCode = roomCode;
     this.isInRoom = true;
-    
+
     this.updateMatchmakingUI(false);
     this.showRoomCode(roomCode);
     this.updateMultiplayerUI(true);
-    
+
     // Send customization and tier
     this.sendCustomization();
     this.networkManager.send({ type: "selectTier", tier: this.selectedTier });
-    
+
     this.hudController.setStatus("Match found! Starting game...", true);
   }
 
@@ -897,8 +934,12 @@ export class GameClient {
    * Update matchmaking UI
    */
   private updateMatchmakingUI(searching: boolean): void {
-    const randomBtn = document.getElementById(this.config.elements.randomBtn || "");
-    const matchmakingStatus = document.getElementById(this.config.elements.matchmakingStatus || "");
+    const randomBtn = document.getElementById(
+      this.config.elements.randomBtn || ""
+    );
+    const matchmakingStatus = document.getElementById(
+      this.config.elements.matchmakingStatus || ""
+    );
     const hostBtn = document.getElementById(this.config.elements.hostBtn || "");
     const joinSection = document.querySelector(".join-section");
     const multiplayerDivider = document.querySelector(".multiplayer-divider");
@@ -909,14 +950,16 @@ export class GameClient {
       if (matchmakingStatus) matchmakingStatus.style.display = "flex";
       if (hostBtn) hostBtn.style.display = "none";
       if (joinSection) (joinSection as HTMLElement).style.display = "none";
-      if (multiplayerDivider) (multiplayerDivider as HTMLElement).style.display = "none";
+      if (multiplayerDivider)
+        (multiplayerDivider as HTMLElement).style.display = "none";
     } else {
       // Hide matchmaking status, show buttons
       if (randomBtn) randomBtn.style.display = "block";
       if (matchmakingStatus) matchmakingStatus.style.display = "none";
       if (hostBtn) hostBtn.style.display = "block";
       if (joinSection) (joinSection as HTMLElement).style.display = "flex";
-      if (multiplayerDivider) (multiplayerDivider as HTMLElement).style.display = "flex";
+      if (multiplayerDivider)
+        (multiplayerDivider as HTMLElement).style.display = "flex";
     }
   }
 
@@ -924,7 +967,9 @@ export class GameClient {
    * Show room code in UI
    */
   private showRoomCode(roomCode: string): void {
-    const roomCodeDisplay = document.getElementById(this.config.elements.roomCodeDisplay || "");
+    const roomCodeDisplay = document.getElementById(
+      this.config.elements.roomCodeDisplay || ""
+    );
     if (roomCodeDisplay) {
       roomCodeDisplay.textContent = roomCode;
       roomCodeDisplay.parentElement?.classList.add("visible");
@@ -940,8 +985,10 @@ export class GameClient {
     this.isMatchmaking = false;
     this.updateMultiplayerUI(false);
     this.updateMatchmakingUI(false);
-    
-    const roomCodeDisplay = document.getElementById(this.config.elements.roomCodeDisplay || "");
+
+    const roomCodeDisplay = document.getElementById(
+      this.config.elements.roomCodeDisplay || ""
+    );
     if (roomCodeDisplay) {
       roomCodeDisplay.textContent = "";
       roomCodeDisplay.parentElement?.classList.remove("visible");
@@ -953,8 +1000,12 @@ export class GameClient {
    */
   private updateMultiplayerUI(inRoom: boolean): void {
     const hostBtn = document.getElementById(this.config.elements.hostBtn || "");
-    const roomCodeInput = document.getElementById(this.config.elements.roomCodeInput || "") as HTMLInputElement | null;
-    const leaveRoomBtn = document.getElementById(this.config.elements.leaveRoomBtn || "");
+    const roomCodeInput = document.getElementById(
+      this.config.elements.roomCodeInput || ""
+    ) as HTMLInputElement | null;
+    const leaveRoomBtn = document.getElementById(
+      this.config.elements.leaveRoomBtn || ""
+    );
     const roomCodeContainer = document.querySelector(".room-code-container");
     const joinSection = document.querySelector(".join-section");
 
@@ -963,13 +1014,15 @@ export class GameClient {
       if (hostBtn) hostBtn.style.display = "none";
       if (joinSection) (joinSection as HTMLElement).style.display = "none";
       if (leaveRoomBtn) leaveRoomBtn.style.display = "block";
-      if (roomCodeContainer) (roomCodeContainer as HTMLElement).style.display = "flex";
+      if (roomCodeContainer)
+        (roomCodeContainer as HTMLElement).style.display = "flex";
     } else {
       // Show join UI, hide room info
       if (hostBtn) hostBtn.style.display = "block";
       if (joinSection) (joinSection as HTMLElement).style.display = "flex";
       if (leaveRoomBtn) leaveRoomBtn.style.display = "none";
-      if (roomCodeContainer) (roomCodeContainer as HTMLElement).style.display = "none";
+      if (roomCodeContainer)
+        (roomCodeContainer as HTMLElement).style.display = "none";
       if (roomCodeInput) roomCodeInput.value = "";
     }
   }
@@ -1042,7 +1095,7 @@ export class GameClient {
 
     // Stop any ongoing sounds
     this.soundManager.stopBoost();
-    
+
     // Disable input controls when game is over
     this.inputManager.disable();
   }
