@@ -102,25 +102,32 @@ function initSoundToggle(): void {
 function initMenuNavigation(): void {
   const panels = document.querySelectorAll<HTMLElement>(".menu-panel");
   const dots = document.querySelectorAll<HTMLButtonElement>(".panel-dot");
-  const leftArrow = document.getElementById("menu-nav-left") as HTMLButtonElement | null;
-  const rightArrow = document.getElementById("menu-nav-right") as HTMLButtonElement | null;
-  
+  const leftArrow = document.getElementById(
+    "menu-nav-left"
+  ) as HTMLButtonElement | null;
+  const rightArrow = document.getElementById(
+    "menu-nav-right"
+  ) as HTMLButtonElement | null;
+
   if (!panels.length || !leftArrow || !rightArrow) return;
-  
+
   let currentPanel = 1; // Start at center (game options)
   const totalPanels = panels.length;
-  
-  function showPanel(index: number, direction: "left" | "right" = "right"): void {
+
+  function showPanel(
+    index: number,
+    direction: "left" | "right" = "right"
+  ): void {
     // Clamp index
     if (index < 0) index = 0;
     if (index >= totalPanels) index = totalPanels - 1;
-    
+
     // Skip if already on this panel
     if (index === currentPanel) return;
-    
+
     // Determine animation direction
     const animClass = direction === "left" ? "slide-left" : "";
-    
+
     // Hide all panels and update dots
     panels.forEach((panel, i) => {
       panel.classList.remove("active", "slide-left");
@@ -129,47 +136,48 @@ function initMenuNavigation(): void {
         if (animClass) panel.classList.add(animClass);
       }
     });
-    
+
     dots.forEach((dot, i) => {
       dot.classList.toggle("active", i === index);
     });
-    
+
     // Update arrow tooltips based on position
     updateArrowHints(index);
-    
+
     currentPanel = index;
   }
-  
+
   function updateArrowHints(index: number): void {
     const panelNames = ["Controls", "Play", "Glider"];
     const leftIndex = Math.max(0, index - 1);
     const rightIndex = Math.min(totalPanels - 1, index + 1);
-    
+
     if (leftArrow) {
       leftArrow.setAttribute("data-tooltip", panelNames[leftIndex]);
       leftArrow.style.opacity = index === 0 ? "0.3" : "1";
       leftArrow.style.pointerEvents = index === 0 ? "none" : "auto";
     }
-    
+
     if (rightArrow) {
       rightArrow.setAttribute("data-tooltip", panelNames[rightIndex]);
       rightArrow.style.opacity = index === totalPanels - 1 ? "0.3" : "1";
-      rightArrow.style.pointerEvents = index === totalPanels - 1 ? "none" : "auto";
+      rightArrow.style.pointerEvents =
+        index === totalPanels - 1 ? "none" : "auto";
     }
   }
-  
+
   // Initialize arrow hints
   updateArrowHints(currentPanel);
-  
+
   // Arrow click handlers
   leftArrow.addEventListener("click", () => {
     showPanel(currentPanel - 1, "left");
   });
-  
+
   rightArrow.addEventListener("click", () => {
     showPanel(currentPanel + 1, "right");
   });
-  
+
   // Dot click handlers
   dots.forEach((dot, index) => {
     dot.addEventListener("click", () => {
@@ -177,17 +185,20 @@ function initMenuNavigation(): void {
       showPanel(index, direction);
     });
   });
-  
+
   // Keyboard navigation (left/right arrows when not in input)
   document.addEventListener("keydown", (e) => {
     // Only handle when lobby is visible
     const lobby = document.getElementById("lobby");
     if (!lobby || lobby.style.display === "none") return;
-    
+
     // Don't handle if focused on an input/select
-    if (document.activeElement?.tagName === "INPUT" || 
-        document.activeElement?.tagName === "SELECT") return;
-    
+    if (
+      document.activeElement?.tagName === "INPUT" ||
+      document.activeElement?.tagName === "SELECT"
+    )
+      return;
+
     if (e.key === "ArrowLeft") {
       showPanel(currentPanel - 1, "left");
     } else if (e.key === "ArrowRight") {

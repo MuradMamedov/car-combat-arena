@@ -1,0 +1,58 @@
+name: Deploy Server to Azure Container Apps
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/server/**"
+      - "src/shared/**"
+      - "Dockerfile"
+      - "package.json"
+  workflow_dispatch:
+
+env:
+  AZURE_CONTAINER_REGISTRY: carcombatregistry
+  CONTAINER_APP_NAME: car-combat-server
+  RESOURCE_GROUP: car-combat-rg
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to Azure Container Registry
+        run: az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
+
+      - name: Build and push container image
+        run: |
+          az acr build \
+            --registry ${{ env.AZURE_CONTAINER_REGISTRY }} \
+            --image car-combat-server:${{ github.sha }} \
+            --image car-combat-server:latest .
+
+      - name: Deploy to Azure Container Apps
+        run: |
+          az containerapp update \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/car-combat-server:${{ github.sha }}
+

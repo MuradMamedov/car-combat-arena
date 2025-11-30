@@ -7,7 +7,9 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "client": "vite",
     "server": "tsx watch src/server/index.ts",
-    "build": "tsc && vite build",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "tsc && vite build",
+    "build:server": "esbuild src/server/index.ts --bundle --platform=node --target=node20 --outfile=dist/server/index.js --format=esm --packages=external",
     "preview": "vite preview"
   },
   "dependencies": {
