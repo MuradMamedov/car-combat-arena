@@ -29,6 +29,9 @@ export class SoundManager {
 
   // Track active boost sound
   private boostOscillator: OscillatorNode | null = null;
+  private boostOscillator2: OscillatorNode | null = null;
+  private boostLfo: OscillatorNode | null = null;
+  private boostNoiseSource: AudioBufferSourceNode | null = null;
   private boostGain: GainNode | null = null;
 
   constructor() {
@@ -369,7 +372,7 @@ export class SoundManager {
   }
 
   /**
-   * Start boost engine sound - continuous thruster
+   * Start boost engine sound - smooth, pleasant thruster whoosh
    */
   startBoost(): void {
     if (!this.enabled || !this.audioContext || !this.masterGain) return;
@@ -378,40 +381,102 @@ export class SoundManager {
     const ctx = this.audioContext;
     const now = ctx.currentTime;
 
-    // Create thruster oscillator
-    this.boostOscillator = ctx.createOscillator();
+    // Main gain output
     this.boostGain = ctx.createGain();
-
-    this.boostOscillator.type = "sawtooth";
-    this.boostOscillator.frequency.value = 80;
-
-    // Add subtle frequency modulation
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    lfo.frequency.value = 8;
-    lfoGain.gain.value = 10;
-    lfo.connect(lfoGain);
-    lfoGain.connect(this.boostOscillator.frequency);
-    lfo.start(now);
-
     this.boostGain.gain.setValueAtTime(0, now);
-    this.boostGain.gain.linearRampToValueAtTime(0.15, now + 0.1);
-
-    this.boostOscillator.connect(this.boostGain);
+    this.boostGain.gain.linearRampToValueAtTime(0.18, now + 0.15);
     this.boostGain.connect(this.masterGain);
 
+    // Layer 1: Warm sine bass tone
+    this.boostOscillator = ctx.createOscillator();
+    this.boostOscillator.type = "sine";
+    this.boostOscillator.frequency.value = 65; // Deep, warm hum
+
+    const bassGain = ctx.createGain();
+    bassGain.gain.value = 0.4;
+    this.boostOscillator.connect(bassGain);
+    bassGain.connect(this.boostGain);
+
+    // Layer 2: Smooth triangle wave for body
+    this.boostOscillator2 = ctx.createOscillator();
+    this.boostOscillator2.type = "triangle";
+    this.boostOscillator2.frequency.value = 130; // Octave above for fullness
+
+    const midGain = ctx.createGain();
+    midGain.gain.value = 0.25;
+    this.boostOscillator2.connect(midGain);
+    midGain.connect(this.boostGain);
+
+    // Layer 3: Filtered noise for "whoosh" character
+    const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const noiseData = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < noiseData.length; i++) {
+      noiseData[i] = Math.random() * 2 - 1;
+    }
+    this.boostNoiseSource = ctx.createBufferSource();
+    this.boostNoiseSource.buffer = noiseBuffer;
+    this.boostNoiseSource.loop = true;
+
+    // Bandpass filter for smooth whoosh (not harsh)
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = "bandpass";
+    noiseFilter.frequency.value = 400;
+    noiseFilter.Q.value = 0.7;
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = 0.12;
+
+    this.boostNoiseSource.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(this.boostGain);
+
+    // Gentle LFO for subtle pulsing (makes it feel alive)
+    this.boostLfo = ctx.createOscillator();
+    this.boostLfo.type = "sine";
+    this.boostLfo.frequency.value = 3; // Slow, gentle pulse
+
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 4; // Subtle pitch wobble
+    this.boostLfo.connect(lfoGain);
+    lfoGain.connect(this.boostOscillator.frequency);
+    lfoGain.connect(this.boostOscillator2.frequency);
+
+    // Start all oscillators
     this.boostOscillator.start(now);
+    this.boostOscillator2.start(now);
+    this.boostNoiseSource.start(now);
+    this.boostLfo.start(now);
   }
 
   /**
-   * Stop boost engine sound
+   * Stop boost engine sound with smooth fade out
    */
   stopBoost(): void {
-    if (this.boostOscillator && this.boostGain && this.audioContext) {
+    if (this.boostGain && this.audioContext) {
       const now = this.audioContext.currentTime;
-      this.boostGain.gain.linearRampToValueAtTime(0, now + 0.1);
-      this.boostOscillator.stop(now + 0.15);
-      this.boostOscillator = null;
+      const fadeTime = 0.15;
+      
+      // Smooth fade out
+      this.boostGain.gain.linearRampToValueAtTime(0, now + fadeTime);
+
+      // Stop and cleanup all oscillators
+      if (this.boostOscillator) {
+        this.boostOscillator.stop(now + fadeTime + 0.05);
+        this.boostOscillator = null;
+      }
+      if (this.boostOscillator2) {
+        this.boostOscillator2.stop(now + fadeTime + 0.05);
+        this.boostOscillator2 = null;
+      }
+      if (this.boostNoiseSource) {
+        this.boostNoiseSource.stop(now + fadeTime + 0.05);
+        this.boostNoiseSource = null;
+      }
+      if (this.boostLfo) {
+        this.boostLfo.stop(now + fadeTime + 0.05);
+        this.boostLfo = null;
+      }
+
       this.boostGain = null;
     }
   }

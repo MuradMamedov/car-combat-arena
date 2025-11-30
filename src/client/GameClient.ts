@@ -58,12 +58,14 @@ export interface GameClientConfig {
     healthText1: string;
     shield1: string;
     shieldText1: string;
+    boost1: string;
     score1: string;
     name1: string;
     health2: string;
     healthText2: string;
     shield2: string;
     shieldText2: string;
+    boost2: string;
     score2: string;
     name2: string;
     status: string;
@@ -113,12 +115,14 @@ const DEFAULT_CONFIG: GameClientConfig = {
     healthText1: "health-text1",
     shield1: "shield1",
     shieldText1: "shield-text1",
+    boost1: "boost1",
     score1: "score1",
     name1: "player-name1",
     health2: "health2",
     healthText2: "health-text2",
     shield2: "shield2",
     shieldText2: "shield-text2",
+    boost2: "boost2",
     score2: "score2",
     name2: "player-name2",
     status: "status",

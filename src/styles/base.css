@@ -1280,6 +1280,35 @@ body::before {
   color: #00ffff;
 }
 
+.boost-bar-container {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: var(--radius-sm);
+  height: 10px;
+  overflow: hidden;
+  position: relative;
+  margin-top: 4px;
+}
+
+.boost-bar {
+  height: 100%;
+  transition: width var(--transition-fast);
+  position: relative;
+  background: linear-gradient(90deg, #ff8c00, #ffd700);
+  box-shadow: 0 0 8px rgba(255, 180, 0, 0.6);
+}
+
+.boost-label {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  text-shadow: 0 0 5px black;
+  color: #ffd700;
+  letter-spacing: 1px;
+}
+
 .score-display {
   font-size: 0.8rem;
   margin-top: var(--spacing-xs);

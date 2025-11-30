@@ -4,7 +4,7 @@ import type {
   WallMaterial,
   WeaponType,
 } from "../constants/game.js";
-import { getGliderTierConfig } from "../constants/game.js";
+import { getGliderTierConfig, BOOST_MAX_FUEL } from "../constants/game.js";
 import type { Vector2 } from "./common.js";
 import type { PlayerCustomization } from "./customization.js";
 import {
@@ -32,6 +32,9 @@ export interface CarState {
   shieldRechargeTimer: number;
   score: number;
   isBoosting: boolean;
+  boostFuel: number;
+  readonly maxBoostFuel: number;
+  boostRechargeTimer: number;
   readonly color: string;
   readonly tier: GliderTier;
   readonly tierName: string;
@@ -146,6 +149,9 @@ export const EntityFactory = {
       shieldRechargeTimer: 0,
       score: 0,
       isBoosting: false,
+      boostFuel: BOOST_MAX_FUEL,
+      maxBoostFuel: BOOST_MAX_FUEL,
+      boostRechargeTimer: 0,
       // Use customization colors instead of tier colors
       color: colorPreset.primary,
       tier,

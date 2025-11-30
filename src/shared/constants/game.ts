@@ -54,6 +54,14 @@ export const SHIELD_RECHARGE_DELAY = 3000; // ms before shield starts recharging
 export const MAX_PLAYERS = 2;
 
 /**
+ * Boost fuel constants
+ */
+export const BOOST_MAX_FUEL = 100; // Maximum boost fuel
+export const BOOST_CONSUMPTION_RATE = 25; // Fuel consumed per second while boosting
+export const BOOST_RECHARGE_RATE = 15; // Fuel recharged per second when not boosting
+export const BOOST_RECHARGE_DELAY = 500; // ms before boost starts recharging after use
+
+/**
  * Scoring constants
  */
 export const SCORE_PER_HIT = 10;

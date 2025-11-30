@@ -3,6 +3,9 @@ import {
   SHIELD_RECHARGE_RATE,
   TICK_INTERVAL,
   TICKS_PER_NETWORK_UPDATE,
+  BOOST_CONSUMPTION_RATE,
+  BOOST_RECHARGE_RATE,
+  BOOST_RECHARGE_DELAY,
 } from "../../shared/constants/index.js";
 import type { GameState } from "../../shared/types/index.js";
 import type { PlayerData } from "../managers/index.js";
@@ -138,6 +141,9 @@ export class GameEngine {
     // Update shields (recharge after delay)
     this.updateShields(state);
 
+    // Update boost fuel (consume when boosting, recharge when not)
+    this.updateBoostFuel(state);
+
     // Update bullets
     this.combatSystem.updateBullets(state);
 
@@ -194,6 +200,43 @@ export class GameEngine {
   }
 
   /**
+   * Update boost fuel consumption and recharge for all players
+   */
+  private updateBoostFuel(state: GameState): void {
+    const deltaTime = TICK_INTERVAL / 1000; // Convert to seconds
+
+    for (const playerId in state.players) {
+      const car = state.players[playerId];
+      if (car.health <= 0) continue;
+
+      if (car.isBoosting && car.boostFuel > 0) {
+        // Consume boost fuel
+        car.boostFuel = Math.max(0, car.boostFuel - BOOST_CONSUMPTION_RATE * deltaTime);
+        // Reset recharge timer when boosting
+        car.boostRechargeTimer = BOOST_RECHARGE_DELAY;
+        
+        // If fuel runs out, stop boosting
+        if (car.boostFuel <= 0) {
+          car.isBoosting = false;
+        }
+      } else {
+        // Not boosting - recharge boost fuel after delay
+        if (car.boostRechargeTimer > 0) {
+          car.boostRechargeTimer -= TICK_INTERVAL;
+        }
+
+        // Recharge boost if timer expired and not full
+        if (car.boostRechargeTimer <= 0 && car.boostFuel < car.maxBoostFuel) {
+          car.boostFuel = Math.min(
+            car.maxBoostFuel,
+            car.boostFuel + BOOST_RECHARGE_RATE * deltaTime
+          );
+        }
+      }
+    }
+  }
+
+  /**
    * Update all players
    */
   private updatePlayers(state: GameState): void {
@@ -203,8 +246,8 @@ export class GameEngine {
       const car = state.players[playerData.id];
       if (!car || car.health <= 0) continue;
 
-      // Update boost state
-      car.isBoosting = playerData.input.boost;
+      // Update boost state - only allow boosting if player wants to boost AND has fuel
+      car.isBoosting = playerData.input.boost && car.boostFuel > 0;
 
       // Apply physics
       this.physicsSystem.updateCar(car, playerData.input);

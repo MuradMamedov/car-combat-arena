@@ -9,12 +9,14 @@ interface HUDElements {
   healthText1: HTMLElement;
   shield1: HTMLElement;
   shieldText1: HTMLElement;
+  boost1: HTMLElement;
   score1: HTMLElement;
   name1: HTMLElement;
   health2: HTMLElement;
   healthText2: HTMLElement;
   shield2: HTMLElement;
   shieldText2: HTMLElement;
+  boost2: HTMLElement;
   score2: HTMLElement;
   name2: HTMLElement;
   status: HTMLElement;
@@ -32,12 +34,14 @@ export class HUDController {
     healthText1: string;
     shield1: string;
     shieldText1: string;
+    boost1: string;
     score1: string;
     name1: string;
     health2: string;
     healthText2: string;
     shield2: string;
     shieldText2: string;
+    boost2: string;
     score2: string;
     name2: string;
     status: string;
@@ -52,6 +56,7 @@ export class HUDController {
       shieldText1: document.getElementById(
         elementIds.shieldText1
       ) as HTMLElement,
+      boost1: document.getElementById(elementIds.boost1) as HTMLElement,
       score1: document.getElementById(elementIds.score1) as HTMLElement,
       name1: document.getElementById(elementIds.name1) as HTMLElement,
       health2: document.getElementById(elementIds.health2) as HTMLElement,
@@ -62,6 +67,7 @@ export class HUDController {
       shieldText2: document.getElementById(
         elementIds.shieldText2
       ) as HTMLElement,
+      boost2: document.getElementById(elementIds.boost2) as HTMLElement,
       score2: document.getElementById(elementIds.score2) as HTMLElement,
       name2: document.getElementById(elementIds.name2) as HTMLElement,
       status: document.getElementById(elementIds.status) as HTMLElement,
@@ -78,7 +84,7 @@ export class HUDController {
     // Assign players by order (first added = player 1, second = player 2)
     // Sort by ID to ensure consistent ordering
     const sortedPlayers = players.sort((a, b) => a.id.localeCompare(b.id));
-    
+
     const player1 = sortedPlayers[0];
     const player2 = sortedPlayers[1];
 
@@ -103,20 +109,26 @@ export class HUDController {
       playerNum === 1 ? this.elements.shield1 : this.elements.shield2;
     const shieldText =
       playerNum === 1 ? this.elements.shieldText1 : this.elements.shieldText2;
+    const boostBar =
+      playerNum === 1 ? this.elements.boost1 : this.elements.boost2;
     const scoreEl =
       playerNum === 1 ? this.elements.score1 : this.elements.score2;
-    const nameEl =
-      playerNum === 1 ? this.elements.name1 : this.elements.name2;
+    const nameEl = playerNum === 1 ? this.elements.name1 : this.elements.name2;
 
     const healthPercent = Math.max(0, (player.health / player.maxHealth) * 100);
     const shieldPercent = Math.max(0, (player.shield / player.maxShield) * 100);
+    const boostPercent = Math.max(
+      0,
+      (player.boostFuel / player.maxBoostFuel) * 100
+    );
 
     healthBar.style.width = `${healthPercent}%`;
     healthText.textContent = Math.max(0, Math.round(player.health)).toString();
     shieldBar.style.width = `${shieldPercent}%`;
     shieldText.textContent = Math.max(0, Math.round(player.shield)).toString();
+    boostBar.style.width = `${boostPercent}%`;
     scoreEl.textContent = player.score.toString();
-    
+
     // Update player name from game state
     if (nameEl && player.displayName) {
       nameEl.textContent = player.displayName;
@@ -164,6 +176,8 @@ export class HUDController {
     this.elements.shield2.style.width = "100%";
     this.elements.shieldText1.textContent = PLAYER_MAX_SHIELD.toString();
     this.elements.shieldText2.textContent = PLAYER_MAX_SHIELD.toString();
+    this.elements.boost1.style.width = "100%";
+    this.elements.boost2.style.width = "100%";
     this.elements.score1.textContent = "0";
     this.elements.score2.textContent = "0";
     // Reset names to defaults
